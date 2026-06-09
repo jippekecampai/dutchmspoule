@@ -151,6 +151,8 @@ function AdminPage() {
             );
           })}
         </div>
+          </>
+        )}
 
         <p className="mt-8 text-center text-sm text-muted-foreground">
           <Link to="/" className="underline hover:text-foreground">
