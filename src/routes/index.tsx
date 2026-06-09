@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function Index() {
+export const Route = createFileRoute("/")({
+  component: Index,
+});
   return (
     <div className="min-h-screen">
       {/* Hero */}
