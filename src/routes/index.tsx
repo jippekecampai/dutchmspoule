@@ -1,29 +1,170 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Trophy, Shield, Calendar, Users, ChevronRight, Football } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
-    ],
-  }),
-  component: Index,
-});
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+export default function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-navy py-20 text-primary-foreground sm:py-28">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-oranje" />
+          <div className="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-oranje-light" />
+        </div>
+        <div className="relative mx-auto max-w-5xl px-4 text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
+            <Football className="h-4 w-4" />
+            WK 2026 — Groep F
+          </div>
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-6xl">
+            DutchMSP WK Poule
+          </h1>
+          <p className="mx-auto mb-8 max-w-xl text-lg text-muted-foreground">
+            Voorspel de uitslagen van Nederland op het WK in de VS. Wie wordt de kampioen van de groep?
+          </p>
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link to="/poule">
+              <Button size="lg" className="bg-oranje text-white hover:bg-oranje-dark">
+                Doe mee aan de poule
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/leaderboard">
+              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                Bekijk het klassement
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Matches */}
+      <section className="mx-auto max-w-5xl px-4 py-16">
+        <h2 className="mb-8 text-center text-2xl font-bold text-foreground sm:text-3xl">
+          Nederlandse Groepswedstrijden
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <MatchCard
+            round="Groepsfase • 1"
+            date="Zondag 14 juni"
+            time="22:00"
+            home="Nederland"
+            away="Japan"
+            venue="AT&T Stadium, Dallas"
+          />
+          <MatchCard
+            round="Groepsfase • 2"
+            date="Zaterdag 20 juni"
+            time="19:00"
+            home="Nederland"
+            away="Zweden"
+            venue="NRG Stadium, Houston"
+          />
+          <MatchCard
+            round="Groepsfase • 3"
+            date="Vrijdag 26 juni"
+            time="01:00"
+            home="Tunesië"
+            away="Nederland"
+            venue="Arrowhead Stadium, Kansas City"
+          />
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="bg-muted/50 py-16">
+        <div className="mx-auto max-w-5xl px-4">
+          <h2 className="mb-10 text-center text-2xl font-bold text-foreground sm:text-3xl">
+            Hoe werkt het?
+          </h2>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <StepCard
+              icon={<Shield className="h-6 w-6 text-oranje" />}
+              title="1. Voorspel"
+              description="Geef je voorspelling door voor elke NL-wedstrijd. Wie wint en met hoeveel?"
+            />
+            <StepCard
+              icon={<Calendar className="h-6 w-6 text-oranje" />}
+              title="2. Wacht af"
+              description="Kijk de wedstrijd en zie of je voorspelling uitkomt."
+            />
+            <StepCard
+              icon={<Trophy className="h-6 w-6 text-oranje" />}
+              title="3. Win!"
+              description="1 punt per juiste winnaar. De meeste punten = de prijs!"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-5xl px-4 py-16 text-center">
+        <h2 className="mb-4 text-2xl font-bold text-foreground sm:text-3xl">
+          Klaar om mee te doen?
+        </h2>
+        <p className="mb-6 text-muted-foreground">
+          Log in, doe je voorspellingen, en maak kans op de hoofdprijs!
+        </p>
+        <Link to="/poule">
+          <Button size="lg" className="bg-oranje text-white hover:bg-oranje-dark">
+            Start je voorspellingen
+          </Button>
+        </Link>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
+        DutchMSP WK 2026 Poule • Voor de ApplicationLink crew in Praag
+      </footer>
+    </div>
+  );
+}
+
+function MatchCard({ round, date, time, home, away, venue }: {
+  round: string;
+  date: string;
+  time: string;
+  home: string;
+  away: string;
+  venue: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {round}
+      </div>
+      <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
+        <span>{date}</span>
+        <span className="rounded-full bg-oranje/10 px-2.5 py-0.5 font-medium text-oranje-dark">
+          {time}
+        </span>
+      </div>
+      <div className="flex items-center justify-between gap-3 text-lg font-bold">
+        <span className={home === "Nederland" ? "text-oranje" : ""}>{home}</span>
+        <span className="text-muted-foreground text-base font-normal">vs</span>
+        <span className={away === "Nederland" ? "text-oranje" : ""}>{away}</span>
+      </div>
+      <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Users className="h-3.5 w-3.5" />
+        {venue}
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ icon, title, description }: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-oranje/10">
+        {icon}
+      </div>
+      <h3 className="mb-2 font-semibold text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }
