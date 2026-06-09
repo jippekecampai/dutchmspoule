@@ -27,6 +27,7 @@ function PoulePage() {
 
   const fetchMatches = useServerFn(getMatches);
   const fetchPredictions = useServerFn(getPredictions);
+  const fetchResults = useServerFn(getMatchResults);
   const savePred = useServerFn(savePrediction);
 
   const { data: matches, isLoading: matchesLoading } = useQuery({
@@ -34,10 +35,15 @@ function PoulePage() {
     queryFn: fetchMatches,
   });
 
-  const { data: predictions, isLoading: predLoading } = useQuery({
+  const { data: predictions } = useQuery({
     queryKey: ["predictions"],
     queryFn: fetchPredictions,
     enabled: !!user,
+  });
+
+  const { data: results } = useQuery({
+    queryKey: ["match-results"],
+    queryFn: fetchResults,
   });
 
   const saveMutation = useMutation({
