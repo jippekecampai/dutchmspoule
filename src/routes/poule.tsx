@@ -86,6 +86,14 @@ function PoulePage() {
           </Card>
         )}
 
+        {user && (
+          <MyStandCard
+            matches={matches || []}
+            predictions={predictions || []}
+            results={results || []}
+          />
+        )}
+
         {matchesLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
