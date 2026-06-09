@@ -118,7 +118,7 @@ function Index() {
 
       {/* Footer */}
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        DutchMSP WK 2026 Poule • Voor de ApplicationLink crew in Praag
+        DutchMSP WK 2026 Poule
       </footer>
     </div>
   );
