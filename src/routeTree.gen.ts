@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PouleRouteImport } from './routes/poule'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 
+const PouleRoute = PouleRouteImport.update({
+  id: '/poule',
+  path: '/poule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -19,28 +31,50 @@ const AuthRoute = AuthRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/poule': typeof PouleRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/poule': typeof PouleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/auth': typeof AuthRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/poule': typeof PouleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/auth'
+  fullPaths: '/auth' | '/leaderboard' | '/poule'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth'
-  id: '__root__' | '/auth'
+  to: '/auth' | '/leaderboard' | '/poule'
+  id: '__root__' | '/auth' | '/leaderboard' | '/poule'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  PouleRoute: typeof PouleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/poule': {
+      id: '/poule'
+      path: '/poule'
+      fullPath: '/poule'
+      preLoaderRoute: typeof PouleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -53,7 +87,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  PouleRoute: PouleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
