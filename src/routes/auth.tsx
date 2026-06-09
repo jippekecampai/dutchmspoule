@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gamepad2, Globe } from "lucide-react";
+import { Gamepad2, Globe, Apple } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -54,13 +54,13 @@ function AuthPage() {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleOAuth = async (provider: "google" | "apple") => {
     const { lovable } = await import("@/integrations/lovable/index");
-    const result = await lovable.auth.signInWithOAuth("google", {
+    const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      toast.error(result.error.message || "Google login mislukt");
+      toast.error(result.error.message || `${provider} login mislukt`);
     }
   };
 
@@ -119,9 +119,13 @@ function AuthPage() {
                     <span className="bg-card px-2 text-muted-foreground">of</span>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full" onClick={handleGoogle}>
+                <Button variant="outline" className="w-full" onClick={() => handleOAuth("google")}>
                   <Globe className="mr-2 h-4 w-4" />
                   Inloggen met Google
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => handleOAuth("apple")}>
+                  <Apple className="mr-2 h-4 w-4" />
+                  Inloggen met Apple
                 </Button>
               </div>
             </div>
@@ -174,9 +178,13 @@ function AuthPage() {
                     <span className="bg-card px-2 text-muted-foreground">of</span>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full" onClick={handleGoogle}>
+                <Button variant="outline" className="w-full" onClick={() => handleOAuth("google")}>
                   <Globe className="mr-2 h-4 w-4" />
                   Registreren met Google
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => handleOAuth("apple")}>
+                  <Apple className="mr-2 h-4 w-4" />
+                  Registreren met Apple
                 </Button>
               </div>
             </div>

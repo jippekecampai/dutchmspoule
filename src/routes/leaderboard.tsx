@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Navbar } from "@/components/Navbar";
-import { getLeaderboard, getMatches, getMatchResults, getAllPredictions } from "@/lib/pool.functions";
+import { getLeaderboard, getMatches, getMatchResults, getRevealedPredictions } from "@/lib/pool.functions";
 import { Trophy, Medal, Crown, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -14,7 +14,7 @@ function LeaderboardPage() {
   const fetchLeaderboard = useServerFn(getLeaderboard);
   const fetchMatches = useServerFn(getMatches);
   const fetchResults = useServerFn(getMatchResults);
-  const fetchAllPreds = useServerFn(getAllPredictions);
+  const fetchAllPreds = useServerFn(getRevealedPredictions);
 
   const { data: leaderboard, isLoading: lbLoading } = useQuery({
     queryKey: ["leaderboard"],
@@ -32,7 +32,7 @@ function LeaderboardPage() {
   });
 
   const { data: allPredictions } = useQuery({
-    queryKey: ["all_predictions"],
+    queryKey: ["revealed_predictions"],
     queryFn: fetchAllPreds,
   });
 
@@ -130,7 +130,7 @@ function LeaderboardPage() {
                   <div className="flex-1">
                     <div className="font-semibold text-foreground">{entry.display_name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {(allPredictions || []).filter((p) => p.user_id === entry.user_id).length}{" "}
+                      {(allPredictions || []).filter((p: { user_id: string }) => p.user_id === entry.user_id).length}{" "}
                       voorspellingen ingediend
                     </div>
                   </div>

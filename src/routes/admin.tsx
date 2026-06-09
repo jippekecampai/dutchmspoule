@@ -6,7 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { getMatches, getMatchResults, saveMatchResult } from "@/lib/pool.functions";
+import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin } from "@/lib/pool.functions";
 import { Save, Lock } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +19,13 @@ function AdminPage() {
   const fetchMatches = useServerFn(getMatches);
   const fetchResults = useServerFn(getMatchResults);
   const saveResult = useServerFn(saveMatchResult);
+  const fetchIsAdmin = useServerFn(checkIsAdmin);
+
+  const { data: adminCheck, isLoading: adminLoading } = useQuery({
+    queryKey: ["is_admin"],
+    queryFn: fetchIsAdmin,
+    retry: false,
+  });
 
   const { data: matches } = useQuery({
     queryKey: ["matches"],
@@ -53,12 +60,24 @@ function AdminPage() {
           </p>
         </div>
 
-        <div className="mb-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Lock className="h-4 w-4 text-oranje" />
-            <span>Alleen ingelogde gebruikers kunnen uitslagen invoeren.</span>
-          </div>
-        </div>
+        {adminLoading ? (
+          <Card className="p-8 text-center text-muted-foreground">Controleren...</Card>
+        ) : !adminCheck?.isAdmin ? (
+          <Card className="p-8 text-center">
+            <Lock className="mx-auto mb-3 h-10 w-10 text-oranje" />
+            <h2 className="mb-2 text-lg font-bold">Geen toegang</h2>
+            <p className="text-sm text-muted-foreground">
+              Alleen admins kunnen uitslagen invoeren. Vraag de organisator om je admin-rechten te geven.
+            </p>
+          </Card>
+        ) : (
+          <>
+            <div className="mb-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-oranje" />
+                <span>Je bent ingelogd als admin.</span>
+              </div>
+            </div>
 
         <div className="space-y-4">
           {(matches || []).map((match) => {
@@ -132,6 +151,8 @@ function AdminPage() {
             );
           })}
         </div>
+          </>
+        )}
 
         <p className="mt-8 text-center text-sm text-muted-foreground">
           <Link to="/" className="underline hover:text-foreground">
