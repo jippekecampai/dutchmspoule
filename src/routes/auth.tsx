@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Football, Mail, Globe } from "lucide-react";
+import { Gamepad2, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -69,7 +69,7 @@ function AuthPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-oranje">
-            <Football className="h-7 w-7 text-white" />
+            <Gamepad2 className="h-7 w-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">DutchMSP WK Poule</h1>
           <p className="text-sm text-muted-foreground">Log in om mee te doen</p>

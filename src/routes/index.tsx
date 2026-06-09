@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Trophy, Shield, Calendar, Users, ChevronRight, Football } from "lucide-react";
+import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Index() {
@@ -13,8 +13,8 @@ export default function Index() {
           <div className="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-oranje-light" />
         </div>
         <div className="relative mx-auto max-w-5xl px-4 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
-            <Football className="h-4 w-4" />
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
+            <Gamepad2 className="h-4 w-4" />
             WK 2026 — Groep F
           </div>
           <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-6xl">
