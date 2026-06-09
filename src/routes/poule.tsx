@@ -123,6 +123,86 @@ function PoulePage() {
   );
 }
 
+function MyStandCard({ matches, predictions, results }: { matches: any[]; predictions: any[]; results: any[] }) {
+  const filled = predictions.length;
+  const total = matches.length;
+
+  let points = 0;
+  let decided = 0;
+  for (const pred of predictions) {
+    const result = results.find((r) => r.match_id === pred.match_id);
+    if (!result) continue;
+    decided++;
+    const pHome = pred.home_score > pred.away_score;
+    const pAway = pred.home_score < pred.away_score;
+    const pDraw = pred.home_score === pred.away_score;
+    const rHome = result.home_score > result.away_score;
+    const rAway = result.home_score < result.away_score;
+    const rDraw = result.home_score === result.away_score;
+    if ((pHome && rHome) || (pAway && rAway) || (pDraw && rDraw)) points++;
+  }
+
+  return (
+    <Card className="mb-8 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-sm">
+      <div className="bg-navy px-5 py-3 text-white">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+          <Trophy className="h-4 w-4 text-oranje" /> Mijn stand
+        </h2>
+      </div>
+      <div className="grid grid-cols-3 divide-x divide-border">
+        <div className="p-4 text-center">
+          <div className="text-2xl font-extrabold text-foreground">{filled}/{total}</div>
+          <div className="text-xs text-muted-foreground">Voorspeld</div>
+        </div>
+        <div className="p-4 text-center">
+          <div className="text-2xl font-extrabold text-oranje">{points}</div>
+          <div className="text-xs text-muted-foreground">Punten</div>
+        </div>
+        <div className="p-4 text-center">
+          <div className="text-2xl font-extrabold text-foreground">{decided}</div>
+          <div className="text-xs text-muted-foreground">Gespeeld</div>
+        </div>
+      </div>
+      {matches.length > 0 && (
+        <ul className="divide-y divide-border border-t border-border">
+          {matches.map((m) => {
+            const pred = predictions.find((p) => p.match_id === m.id);
+            const result = results.find((r) => r.match_id === m.id);
+            let status: "correct" | "wrong" | "pending" | "empty" = "empty";
+            if (pred && result) {
+              const pHome = pred.home_score > pred.away_score;
+              const pAway = pred.home_score < pred.away_score;
+              const pDraw = pred.home_score === pred.away_score;
+              const rHome = result.home_score > result.away_score;
+              const rAway = result.home_score < result.away_score;
+              const rDraw = result.home_score === result.away_score;
+              status = (pHome && rHome) || (pAway && rAway) || (pDraw && rDraw) ? "correct" : "wrong";
+            } else if (pred) status = "pending";
+            return (
+              <li key={m.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                <span className="truncate text-foreground">{m.home_team} – {m.away_team}</span>
+                <span className="flex items-center gap-3">
+                  <span className="font-mono text-foreground">
+                    {pred ? `${pred.home_score}-${pred.away_score}` : "—"}
+                  </span>
+                  {result && (
+                    <span className="font-mono text-xs text-muted-foreground">
+                      (uitslag {result.home_score}-{result.away_score})
+                    </span>
+                  )}
+                  {status === "correct" && <Check className="h-4 w-4 text-green-600" />}
+                  {status === "wrong" && <X className="h-4 w-4 text-destructive" />}
+                  {status === "pending" && <CircleDashed className="h-4 w-4 text-muted-foreground" />}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
 function MatchPredictionCard({
   match,
   prediction,
