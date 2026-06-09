@@ -7,6 +7,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  return (
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy py-20 text-primary-foreground sm:py-28">
@@ -15,7 +16,7 @@ function Index() {
           <div className="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-oranje-light" />
         </div>
         <div className="relative mx-auto max-w-5xl px-4 text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
             <Gamepad2 className="h-4 w-4" />
             WK 2026 — Groep F
           </div>
@@ -144,7 +145,7 @@ function MatchCard({ round, date, time, home, away, venue }: {
       </div>
       <div className="flex items-center justify-between gap-3 text-lg font-bold">
         <span className={home === "Nederland" ? "text-oranje" : ""}>{home}</span>
-        <span className="text-muted-foreground text-base font-normal">vs</span>
+        <span className="text-base font-normal text-muted-foreground">vs</span>
         <span className={away === "Nederland" ? "text-oranje" : ""}>{away}</span>
       </div>
       <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
