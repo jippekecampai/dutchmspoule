@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   component: Index,
 });
-  return (
+
+function Index() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy py-20 text-primary-foreground sm:py-28">
