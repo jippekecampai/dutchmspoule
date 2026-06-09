@@ -81,11 +81,8 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-xl">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="text-2xl font-extrabold tracking-tight">
-            <span className="text-oranje">dutch</span> <span className="text-oranje/80">msp</span>
-          </span>
-          <span className="text-2xl font-semibold text-foreground">connect.</span>
+        <div className="mb-6 text-2xl font-extrabold tracking-tight text-foreground">
+          Dutch MSP WK Poule
         </div>
 
         <h1 className="mb-2 text-4xl font-extrabold text-foreground">Login</h1>
