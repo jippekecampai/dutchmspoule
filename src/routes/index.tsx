@@ -12,6 +12,15 @@ function Index() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy py-20 text-primary-foreground sm:py-28">
+        <video
+          src={introVideo.url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-navy/60" />
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-oranje" />
           <div className="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-oranje-light" />
