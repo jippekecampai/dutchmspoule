@@ -7,8 +7,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { getMatches, getPredictions, savePrediction } from "@/lib/pool.functions";
-import { Trophy, Clock, MapPin, AlertCircle } from "lucide-react";
+import { getMatches, getPredictions, savePrediction, getMatchResults } from "@/lib/pool.functions";
+import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/poule")({
