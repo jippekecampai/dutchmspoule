@@ -20,7 +20,7 @@ const PaymentStatusSchema = z.object({
 const PREDICTION_LOCK_MINUTES = 10;
 
 // Deze accounts krijgen automatisch adminrechten bij hun eerste bezoek.
-const ADMIN_EMAILS = ["janneke@campai.nl"];
+const ADMIN_EMAILS = ["janneke@campai.nl", "jippeke98@gmail.com"];
 
 const CLAIM_PREFIX = "claimed:";
 

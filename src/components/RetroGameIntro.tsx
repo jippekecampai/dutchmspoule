@@ -53,6 +53,9 @@ const MATCHES: {
   },
 ];
 
+// Voorspelde uitslag van de ingelogde speler, per level (volgorde = sort_order).
+export type PredictedScore = { home: number; away: number } | null;
+
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * Math.min(1, Math.max(0, t));
 }
@@ -220,7 +223,13 @@ function drawIntro(ctx: CanvasRenderingContext2D, m: (typeof MATCHES)[number], t
   }
 }
 
-function drawPlay(ctx: CanvasRenderingContext2D, m: (typeof MATCHES)[number], t: number, abs: number) {
+function drawPlay(
+  ctx: CanvasRenderingContext2D,
+  m: (typeof MATCHES)[number],
+  t: number,
+  abs: number,
+  goalScored: boolean
+) {
   const oranjeTeam = NED;
   const otherTeam = m.home.code === "NED" ? m.away : m.home;
 
@@ -249,9 +258,14 @@ function drawPlay(ctx: CanvasRenderingContext2D, m: (typeof MATCHES)[number], t:
     const k = (t - T_SHOT) / (T_GOAL - T_SHOT);
     bx = lerp(236, W - 18, k);
     by = lerp(122, 100, k) - Math.sin(k * Math.PI) * 8;
-  } else {
+  } else if (goalScored) {
     bx = W - 18;
     by = 102 + Math.min(6, (t - T_GOAL) * 20);
+  } else {
+    // Keeper pakt 'm: de bal stuit terug het veld in.
+    const k = Math.min(1, (t - T_GOAL) * 1.2);
+    bx = lerp(W - 24, W - 90, k);
+    by = lerp(104, 134, k) - Math.sin(k * Math.PI) * 16;
   }
 
   const frame = Math.floor(t * 9) % 2;
@@ -271,7 +285,8 @@ function drawPlay(ctx: CanvasRenderingContext2D, m: (typeof MATCHES)[number], t:
   px(ctx, bx - 1, by - 2, 3, 3, "#ffffff");
   px(ctx, bx, by - 1, 1, 1, "#999999");
 
-  const scored = t >= T_GOAL;
+  const resolved = t >= T_GOAL;
+  const scored = resolved && goalScored;
   const liveScore: [number, number] =
     m.home.code === "NED" ? [scored ? 1 : 0, 0] : [0, scored ? 1 : 0];
   const minutes = Math.min(90, Math.floor((t / PLAY) * 90));
@@ -282,41 +297,73 @@ function drawPlay(ctx: CanvasRenderingContext2D, m: (typeof MATCHES)[number], t:
     if (t < T_GOAL + 0.15) px(ctx, 0, 0, W, H, "rgba(255,255,255,0.55)");
     text(ctx, "GOAL!!!", W / 2 + 2, 78, 18, "#06091a");
     text(ctx, "GOAL!!!", W / 2, 76, 18, blink ? "#ffd23c" : "#ffffff");
+  } else if (resolved) {
+    const blink = Math.floor(abs * 7) % 2 === 0;
+    text(ctx, "GEPAKT!", W / 2 + 2, 78, 16, "#06091a");
+    text(ctx, "GEPAKT!", W / 2, 76, 16, blink ? "#ffffff" : "#9aa4c8");
   }
 }
 
-function drawOutro(ctx: CanvasRenderingContext2D, m: (typeof MATCHES)[number], t: number) {
+function drawOutro(
+  ctx: CanvasRenderingContext2D,
+  m: (typeof MATCHES)[number],
+  t: number,
+  final: [number, number],
+  isPrediction: boolean
+) {
   px(ctx, 0, 0, W, H, NIGHT);
   drawZigzagBand(ctx, 0, 10);
   drawZigzagBand(ctx, H - 10, 10);
 
-  text(ctx, "EINDSTAND", W / 2, 32, 8, "#9aa4c8");
+  text(ctx, isPrediction ? "JOUW VOORSPELLING" : "EINDSTAND", W / 2, 32, 8, isPrediction ? ORANJE : "#9aa4c8");
   text(ctx, m.home.code, W / 2 - 70, 64, 10, m.home.code === "NED" ? ORANJE : "#ffffff");
-  text(ctx, `${m.final[0]} - ${m.final[1]}`, W / 2, 62, 14, "#ffd23c");
+  text(ctx, `${final[0]} - ${final[1]}`, W / 2, 62, 14, "#ffd23c");
   text(ctx, m.away.code, W / 2 + 70, 64, 10, m.away.code === "NED" ? ORANJE : "#ffffff");
 
+  const nedGoals = m.home.code === "NED" ? final[0] : final[1];
+  const oppGoals = m.home.code === "NED" ? final[1] : final[0];
+  const verdict =
+    nedGoals > oppGoals
+      ? m.level < 3
+        ? `LEVEL ${m.level} CLEAR!`
+        : "GROEP F VOLTOOID!"
+      : nedGoals === oppGoals
+      ? "GELIJKSPEL..."
+      : "GAME OVER";
+
   if (Math.floor(t * 2.5) % 2 === 0) {
-    text(ctx, m.level < 3 ? `LEVEL ${m.level} CLEAR!` : "GROEP F VOLTOOID!", W / 2, 104, 8, "#ffffff");
+    text(ctx, verdict, W / 2, 104, 8, nedGoals < oppGoals ? "#e23030" : "#ffffff");
   }
-  const stars = "*".repeat(m.level);
-  text(ctx, stars, W / 2, 126, 12, "#ffd23c");
+  if (nedGoals > oppGoals) {
+    text(ctx, "*".repeat(m.level), W / 2, 126, 12, "#ffd23c");
+  }
   if (m.level === 3) {
     text(ctx, "HUP HOLLAND HUP", W / 2, 150, 6, ORANJE);
   }
 }
 
-function drawFrame(ctx: CanvasRenderingContext2D, abs: number) {
+function drawFrame(ctx: CanvasRenderingContext2D, abs: number, predictions?: PredictedScore[]) {
   const cycle = abs % (MATCH_DUR * MATCHES.length);
   const idx = Math.min(MATCHES.length - 1, Math.floor(cycle / MATCH_DUR));
   const m = MATCHES[idx];
   const t = cycle - idx * MATCH_DUR;
 
+  const pred = predictions?.[idx] ?? null;
+  const final: [number, number] = pred ? [pred.home, pred.away] : m.final;
+  const nedGoals = m.home.code === "NED" ? final[0] : final[1];
+
   if (t < INTRO) drawIntro(ctx, m, t);
-  else if (t < INTRO + PLAY) drawPlay(ctx, m, t - INTRO, abs);
-  else drawOutro(ctx, m, t - INTRO - PLAY);
+  else if (t < INTRO + PLAY) drawPlay(ctx, m, t - INTRO, abs, nedGoals > 0);
+  else drawOutro(ctx, m, t - INTRO - PLAY, final, !!pred);
 }
 
-export function RetroGameIntro({ className }: { className?: string }) {
+export function RetroGameIntro({
+  className,
+  predictions,
+}: {
+  className?: string;
+  predictions?: PredictedScore[];
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -328,19 +375,19 @@ export function RetroGameIntro({ className }: { className?: string }) {
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
-      drawFrame(ctx, INTRO + 2.2);
+      drawFrame(ctx, INTRO + 2.2, predictions);
       return;
     }
 
     let raf = 0;
     const start = performance.now();
     const tick = (now: number) => {
-      drawFrame(ctx, (now - start) / 1000);
+      drawFrame(ctx, (now - start) / 1000, predictions);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [predictions]);
 
   return (
     <canvas

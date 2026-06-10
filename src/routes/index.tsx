@@ -1,13 +1,55 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
 import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2, CreditCard, Lock, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RetroGameIntro } from "@/components/RetroGameIntro";
+import { RetroGameIntro, type PredictedScore } from "@/components/RetroGameIntro";
+import { supabase } from "@/integrations/supabase/client";
+import { getMatches, getPredictions } from "@/lib/pool.functions";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
+  const [user, setUser] = useState<null | { id: string }>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUser({ id: data.user.id });
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? { id: session.user.id } : null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const fetchMatches = useServerFn(getMatches);
+  const fetchPredictions = useServerFn(getPredictions);
+
+  const { data: matches } = useQuery({
+    queryKey: ["matches"],
+    queryFn: fetchMatches,
+    enabled: !!user,
+  });
+
+  const { data: predictions } = useQuery({
+    queryKey: ["predictions"],
+    queryFn: fetchPredictions,
+    enabled: !!user,
+    retry: false,
+  });
+
+  // Per level (wedstrijdvolgorde) de eigen voorspelling; null = nog niet ingevuld.
+  const predictedScores = useMemo<PredictedScore[] | undefined>(() => {
+    if (!matches?.length || !predictions?.length) return undefined;
+    return matches.slice(0, 3).map((match) => {
+      const pred = predictions.find((p) => p.match_id === match.id);
+      return pred ? { home: pred.home_score, away: pred.away_score } : null;
+    });
+  }, [matches, predictions]);
+
   return (
     <div>
       {/* Hero */}
@@ -29,10 +71,10 @@ function Index() {
 
           {/* Arcade-scherm: 8-bit demo door de drie groepswedstrijden */}
           <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
-            <RetroGameIntro className="block aspect-video w-full" />
+            <RetroGameIntro className="block aspect-video w-full" predictions={predictedScores} />
           </div>
           <p className="pixel-heading blink mb-8 text-[0.6rem] text-oranje-light">
-            Press start to play
+            {predictedScores ? "Met jouw voorspellingen" : "Press start to play"}
           </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
