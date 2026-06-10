@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getServerConfig } from "@/lib/config.server";
 import { ENTRY_FEE_CENTS, ENTRY_FEE_CURRENCY, getStripeClient } from "@/lib/stripe.server";
 
-export const Route = createFileRoute("/api/stripe/webhook")({
+export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const { stripeWebhookSecret } = getServerConfig();
         if (!stripeWebhookSecret) {
-          return new Response("Missing STRIPE_WEBHOOK_SECRET", { status: 500 });
+          return new Response("Webhook secret not configured", { status: 500 });
         }
 
         const signature = request.headers.get("stripe-signature");
@@ -24,12 +24,12 @@ export const Route = createFileRoute("/api/stripe/webhook")({
         try {
           event = getStripeClient().webhooks.constructEvent(rawBody, signature, stripeWebhookSecret);
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Invalid Stripe webhook signature";
+          const message = error instanceof Error ? error.message : "Invalid signature";
           return new Response(message, { status: 400 });
         }
 
         if (event.type === "checkout.session.completed") {
-          const session = event.data.object;
+          const session = event.data.object as Stripe.Checkout.Session;
           const userId = session.metadata?.user_id || session.client_reference_id;
 
           if (!userId || session.payment_status !== "paid") {
@@ -38,16 +38,19 @@ export const Route = createFileRoute("/api/stripe/webhook")({
 
           const { error } = await supabaseAdmin
             .from("participant_payments")
-            .upsert({
-              user_id: userId,
-              status: "paid",
-              amount_cents: session.amount_total || ENTRY_FEE_CENTS,
-              currency: session.currency || ENTRY_FEE_CURRENCY,
-              provider: "stripe",
-              provider_reference: session.id,
-              paid_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }, { onConflict: "user_id" });
+            .upsert(
+              {
+                user_id: userId,
+                status: "paid",
+                amount_cents: session.amount_total || ENTRY_FEE_CENTS,
+                currency: session.currency || ENTRY_FEE_CURRENCY,
+                provider: "stripe",
+                provider_reference: session.id,
+                paid_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "user_id" },
+            );
 
           if (error) {
             return new Response(error.message, { status: 500 });

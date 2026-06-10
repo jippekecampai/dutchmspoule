@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { getServerConfig } from "./config.server";
 
 export const ENTRY_FEE_CENTS = 1000;
@@ -7,11 +8,11 @@ export const ENTRY_FEE_CURRENCY = "eur";
 export function getStripeClient() {
   const { stripeSecretKey } = getServerConfig();
   if (!stripeSecretKey) {
-    throw new Error("Missing STRIPE_SECRET_KEY");
+    throw new Error("Stripe is nog niet geconfigureerd.");
   }
 
   return new Stripe(stripeSecretKey, {
-    apiVersion: "2026-02-25.clover" as Stripe.LatestApiVersion,
+    apiVersion: "2026-02-25.clover" as never,
   });
 }
 
@@ -24,5 +25,15 @@ export function getAppUrl(request?: Request) {
     return `${url.protocol}//${url.host}`;
   }
 
-  throw new Error("Missing APP_URL");
+  try {
+    const origin = getRequestHeader("origin") || getRequestHeader("referer");
+    if (origin) {
+      const url = new URL(origin);
+      return `${url.protocol}//${url.host}`;
+    }
+  } catch {
+    // not inside a request context
+  }
+
+  throw new Error("Kon de app-URL niet bepalen.");
 }
