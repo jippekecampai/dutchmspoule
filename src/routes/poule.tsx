@@ -130,8 +130,9 @@ function PoulePage() {
                   })
                 }
                 isSaving={saveMutation.isPending}
-                disabled={!user || participation?.isPaid !== true}
-                paymentRequired={!!user && participation?.isPaid !== true}
+                disabled={!user}
+                pendingApproval={!!user && participation?.isPaid !== true}
+
               />
             ))}
           </div>
@@ -187,8 +188,9 @@ function ParticipationCard({
 
       <div className="mt-5 flex flex-col items-center gap-4 rounded-xl border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="rounded-lg bg-white p-2 shadow-sm">
-          <QRCodeSVG value={BUNQ_PAYMENT_URL} size={160} level="M" includeMargin={false} />
+          <img src={bunqQrAsset.url} alt="bunq QR voor mspwkpoule" width={180} height={180} className="block h-44 w-44 object-contain" />
         </div>
+
         <div className="flex-1 text-center sm:text-left">
           <div className="flex items-center justify-center gap-2 text-sm font-semibold text-foreground sm:justify-start">
             <QrCode className="h-4 w-4 text-oranje-dark" /> Scan met je telefoon
