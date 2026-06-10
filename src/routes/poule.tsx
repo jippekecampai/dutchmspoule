@@ -7,9 +7,12 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus, createEntryFeeCheckout } from "@/lib/pool.functions";
-import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock } from "lucide-react";
+import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus } from "@/lib/pool.functions";
+import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock, QrCode, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
+
+const BUNQ_PAYMENT_URL = "https://bunq.me/mspwkpoule";
 
 export const Route = createFileRoute("/poule")({
   component: PoulePage,
@@ -29,7 +32,7 @@ function PoulePage() {
   const fetchPredictions = useServerFn(getPredictions);
   const fetchResults = useServerFn(getMatchResults);
   const fetchParticipation = useServerFn(getParticipationStatus);
-  const createCheckout = useServerFn(createEntryFeeCheckout);
+  
   const savePred = useServerFn(savePrediction);
 
   const { data: matches, isLoading: matchesLoading } = useQuery({
@@ -65,13 +68,6 @@ function PoulePage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const checkoutMutation = useMutation({
-    mutationFn: createCheckout,
-    onSuccess: ({ url }) => {
-      window.location.href = url;
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
 
   const getUserPrediction = (matchId: string) => {
     return (predictions || []).find((p) => p.match_id === matchId);
@@ -105,11 +101,8 @@ function PoulePage() {
 
         {user && (
           <>
-            <ParticipationCard
-              participation={participation}
-              onCheckout={() => checkoutMutation.mutate({ data: undefined })}
-              isCheckingOut={checkoutMutation.isPending}
-            />
+            <ParticipationCard participation={participation} />
+
             <MyStandCard
               matches={matches || []}
               predictions={predictions || []}
@@ -150,8 +143,6 @@ function PoulePage() {
 
 function ParticipationCard({
   participation,
-  onCheckout,
-  isCheckingOut,
 }: {
   participation?: {
     isPaid: boolean;
@@ -160,8 +151,6 @@ function ParticipationCard({
     currency: string;
     paidAt: string | null;
   };
-  onCheckout: () => void;
-  isCheckingOut: boolean;
 }) {
   const amount = new Intl.NumberFormat("nl-NL", {
     style: "currency",
@@ -186,26 +175,35 @@ function ParticipationCard({
 
   return (
     <Card className="mb-6 rounded-2xl border border-oranje/30 bg-oranje/10 p-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-3">
-          <CreditCard className="mt-0.5 h-5 w-5 text-oranje-dark" />
-          <div>
-            <div className="font-semibold text-foreground">Betaling nodig om mee te spelen</div>
-            <div className="mt-1 text-sm text-muted-foreground">
-              Inleg {amount}. Na bevestiging wordt voorspellen automatisch vrijgegeven.
-            </div>
+      <div className="flex gap-3">
+        <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-oranje-dark" />
+        <div>
+          <div className="font-semibold text-foreground">Betaling nodig om mee te spelen</div>
+          <div className="mt-1 text-sm text-muted-foreground">
+            Inleg {amount}. Scan de QR-code of open de betaallink. Zodra de organisator je betaling bevestigt, wordt je account geactiveerd en kun je voorspellen.
           </div>
         </div>
-        <Button
-          className="bg-oranje text-white hover:bg-oranje-dark"
-          onClick={onCheckout}
-          disabled={isCheckingOut}
-        >
-          {isCheckingOut ? "Checkout openen..." : "Betaal deelname"}
-        </Button>
       </div>
+
+      <div className="mt-5 flex flex-col items-center gap-4 rounded-xl border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-lg bg-white p-2 shadow-sm">
+          <QRCodeSVG value={BUNQ_PAYMENT_URL} size={160} level="M" includeMargin={false} />
+        </div>
+        <div className="flex-1 text-center sm:text-left">
+          <div className="flex items-center justify-center gap-2 text-sm font-semibold text-foreground sm:justify-start">
+            <QrCode className="h-4 w-4 text-oranje-dark" /> Scan met je telefoon
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground break-all">{BUNQ_PAYMENT_URL}</p>
+          <a href={BUNQ_PAYMENT_URL} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block">
+            <Button className="bg-oranje text-white hover:bg-oranje-dark">
+              <ExternalLink className="mr-2 h-4 w-4" /> Open betaallink
+            </Button>
+          </a>
+        </div>
+      </div>
+
       <p className="mt-3 text-xs text-muted-foreground">
-        Je wordt doorgestuurd naar Stripe Checkout. Na succesvolle betaling wordt deelname automatisch bevestigd.
+        Na betaling controleert de organisator je inleg en activeert je account handmatig.
       </p>
     </Card>
   );
