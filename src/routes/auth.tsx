@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Gamepad2, Trophy } from "lucide-react";
+import { ArrowLeft, Gamepad2, Trophy, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -36,6 +36,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
@@ -127,10 +128,10 @@ function AuthPage() {
 
             <h1 className="pixel-heading text-lg text-foreground sm:text-xl">Inloggen</h1>
             <p className="mt-3 text-muted-foreground">
-              Gebruik Google of log in met e-mail. Na inloggen ga je direct naar de poule.
+              Log in met Google of Apple. Na inloggen ga je direct naar de poule.
             </p>
 
-            <div className="mt-7">
+            <div className="mt-7 space-y-4">
               <button
                 onClick={() => handleOAuth("google")}
                 disabled={loading}
@@ -139,11 +140,33 @@ function AuthPage() {
                 <GoogleIcon className="h-5 w-5 rounded-full bg-white" />
                 Inloggen met Google
               </button>
+              <button
+                onClick={() => handleOAuth("apple")}
+                disabled={loading}
+                className="pixel-btn flex w-full items-center justify-center gap-3 bg-secondary px-4 py-3.5 text-foreground transition hover:bg-accent disabled:opacity-60"
+              >
+                <AppleIcon className="h-5 w-5" />
+                Inloggen met Apple
+              </button>
             </div>
 
+            {!showEmail && (
+              <div className="mt-7 text-center">
+                <button
+                  onClick={() => setShowEmail(true)}
+                  className="inline-flex items-center gap-2 text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
+                >
+                  <Mail className="h-4 w-4" />
+                  Of log in met e-mail en wachtwoord
+                </button>
+              </div>
+            )}
+
+            {showEmail && (
+            <>
             <div className="my-7 flex items-center gap-4">
               <div className="h-px flex-1 bg-border" />
-              <span className="pixel-heading text-[0.55rem] text-muted-foreground">of met e-mail</span>
+              <span className="pixel-heading text-[0.55rem] text-muted-foreground">met e-mail</span>
               <div className="h-px flex-1 bg-border" />
             </div>
 
@@ -185,15 +208,8 @@ function AuthPage() {
                 </Button>
               </TabsContent>
             </Tabs>
-
-            <button
-              onClick={() => handleOAuth("apple")}
-              disabled={loading}
-              className="pixel-btn mt-5 flex w-full items-center justify-center gap-2 bg-secondary px-4 py-3 text-foreground transition hover:bg-accent disabled:opacity-60"
-            >
-              <AppleIcon className="h-4 w-4" />
-              Inloggen met Apple
-            </button>
+            </>
+            )}
 
             <div className="mt-8 text-center">
               <Link to="/" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">

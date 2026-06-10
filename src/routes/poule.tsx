@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus } from "@/lib/pool.functions";
-import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock, QrCode, ExternalLink } from "lucide-react";
+import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus, claimPayment } from "@/lib/pool.functions";
+import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock, QrCode, ExternalLink, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import bunqQrAsset from "@/assets/bunq-qr.png.asset.json";
 
@@ -66,6 +66,16 @@ function PoulePage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const claimPay = useServerFn(claimPayment);
+  const claimMutation = useMutation({
+    mutationFn: claimPay,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["participation-status"] });
+      toast.success("Gemeld! De organisator bevestigt je betaling zo snel mogelijk.");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
 
   const getUserPrediction = (matchId: string) => {
     return (predictions || []).find((p) => p.match_id === matchId);
@@ -88,7 +98,12 @@ function PoulePage() {
         <div className="flag-strip" />
       </div>
 
-      <ParticipationCard participation={user ? participation : undefined} />
+      <ParticipationCard
+        participation={user ? participation : undefined}
+        isLoggedIn={!!user}
+        onClaim={() => claimMutation.mutate({})}
+        isClaiming={claimMutation.isPending}
+      />
 
       {!user && (
         <div className="pixel-card mb-8 p-6 text-center">
@@ -145,14 +160,22 @@ function PoulePage() {
 
 function ParticipationCard({
   participation,
+  isLoggedIn,
+  onClaim,
+  isClaiming,
 }: {
   participation?: {
     isPaid: boolean;
     status: string;
+    hasClaimed: boolean;
+    claimedAt: string | null;
     amountCents: number;
     currency: string;
     paidAt: string | null;
   };
+  isLoggedIn: boolean;
+  onClaim: () => void;
+  isClaiming: boolean;
 }) {
   const amount = new Intl.NumberFormat("nl-NL", {
     style: "currency",
@@ -175,6 +198,32 @@ function ParticipationCard({
     );
   }
 
+  if (participation?.hasClaimed) {
+    return (
+      <div className="pixel-card-flat mb-6 border-gold bg-gold/10 p-5">
+        <div className="flex items-start gap-3">
+          <HandCoins className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+          <div>
+            <div className="pixel-heading text-[0.6rem] text-gold">Betaling gemeld — wacht op bevestiging</div>
+            <div className="mt-2 text-muted-foreground">
+              Je hebt aangegeven dat je de inleg hebt overgemaakt. De organisator controleert dit en
+              activeert je deelname. Je kunt alvast voorspellingen invullen; ze tellen mee zodra je
+              deelname bevestigd is.
+            </div>
+            <a
+              href={BUNQ_PAYMENT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm text-oranje-light underline hover:text-oranje"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> Toch nog niet betaald? Open de betaallink
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pixel-card mb-6 p-5">
       <div className="mx-auto flex max-w-2xl gap-3">
@@ -182,7 +231,8 @@ function ParticipationCard({
         <div>
           <div className="pixel-heading text-[0.65rem] text-oranje">Betaling nodig om mee te spelen</div>
           <div className="mt-2 text-muted-foreground">
-            Inleg {amount}. Scan de QR-code of open de betaallink. Zodra de organisator je betaling bevestigt, wordt je account geactiveerd en kun je voorspellen.
+            Inleg {amount}. Scan de QR-code of open de betaallink, en kom daarna terug naar deze
+            pagina om je betaling te melden.
           </div>
         </div>
       </div>
@@ -205,9 +255,27 @@ function ParticipationCard({
         </div>
       </div>
 
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        Na betaling controleert de organisator je inleg en activeert je account handmatig.
-      </p>
+      <div className="mx-auto mt-5 max-w-xl border-t-2 border-oranje/30 pt-4 text-center">
+        {isLoggedIn ? (
+          <>
+            <p className="mb-3 text-muted-foreground">
+              Stap 2: betaald? Meld het hier, dan krijgt de organisator een seintje om je te activeren.
+            </p>
+            <Button
+              className="pixel-btn bg-secondary text-foreground hover:bg-accent"
+              onClick={onClaim}
+              disabled={isClaiming}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              {isClaiming ? "Bezig..." : "Ik heb betaald"}
+            </Button>
+          </>
+        ) : (
+          <p className="text-muted-foreground">
+            Log in om na het betalen je deelname te melden bij de organisator.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
