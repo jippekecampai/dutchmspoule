@@ -11,23 +11,25 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <div className="pixel-card max-w-md p-8 text-center">
+        <h1 className="pixel-heading text-5xl text-oranje">404</h1>
+        <h2 className="pixel-heading mt-4 text-sm text-foreground">Game over</h2>
+        <p className="mt-3 text-muted-foreground">
+          Deze pagina bestaat niet of is verplaatst.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="pixel-btn inline-flex items-center justify-center bg-oranje px-4 py-2 text-primary-foreground hover:bg-oranje-dark"
           >
-            Go home
+            Insert coin — naar home
           </Link>
         </div>
       </div>
@@ -43,29 +45,27 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <div className="pixel-card max-w-md p-8 text-center">
+        <h1 className="pixel-heading text-sm text-oranje">Deze pagina laadde niet</h1>
+        <p className="mt-3 text-muted-foreground">
+          Er ging iets mis aan onze kant. Probeer het opnieuw of ga terug naar home.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="pixel-btn inline-flex items-center justify-center bg-oranje px-4 py-2 text-primary-foreground hover:bg-oranje-dark"
           >
-            Try again
+            Continue?
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="pixel-btn inline-flex items-center justify-center bg-secondary px-4 py-2 text-foreground hover:bg-accent"
           >
-            Go home
+            Naar home
           </a>
         </div>
       </div>
@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca942588-1273-44db-b68d-6e71f18a4975/id-preview-6a2fb246--70b33e81-c67e-4a41-b9b1-088f9b20a9f1.lovable.app-1781079116376.png" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -106,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="nl">
       <head>
         <HeadContent />
       </head>
@@ -123,7 +129,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="pixel-grid-bg flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <Footer />
+      </div>
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );

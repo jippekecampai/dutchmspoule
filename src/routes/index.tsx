@@ -9,48 +9,55 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="min-h-screen">
+    <div>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-navy py-20 text-primary-foreground sm:py-28">
+      <section className="relative overflow-hidden border-b-[3px] border-oranje bg-navy py-20 sm:py-28">
         <video
           src={introVideo.url}
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
+          className="absolute inset-0 h-full w-full object-cover opacity-25"
         />
-        <div className="absolute inset-0 bg-navy/60" />
+        <div className="absolute inset-0 bg-navy/70" />
+        <div className="pattern-1988 absolute inset-x-0 top-0 h-3" />
         <div className="relative mx-auto max-w-5xl px-4 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
+          <div className="pixel-heading mb-6 inline-flex items-center gap-2 border-2 border-oranje bg-navy/80 px-4 py-2 text-[0.6rem] text-oranje-light">
             <Gamepad2 className="h-4 w-4" />
             WK 2026 — Groep F
           </div>
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-6xl">
-            DutchMSP WK Poule
+          <h1 className="pixel-heading mb-6 text-2xl leading-relaxed text-foreground sm:text-4xl">
+            DutchMSP
+            <br />
+            <span className="text-oranje">WK Poule</span>
           </h1>
-          <p className="mx-auto mb-8 max-w-xl text-lg text-muted-foreground">
+          <p className="mx-auto mb-4 max-w-xl text-xl text-muted-foreground">
             Log in, betaal je deelname en voorspel de standen. Wijzigingen sluiten automatisch 10 minuten voor aftrap.
           </p>
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <p className="pixel-heading blink mb-8 text-[0.6rem] text-oranje-light">
+            Press start to play
+          </p>
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link to="/poule">
-              <Button size="lg" className="bg-oranje text-white hover:bg-oranje-dark">
+              <Button size="lg" className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
                 Doe mee aan de poule
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
             <Link to="/leaderboard">
-              <Button size="lg" variant="outline" className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white">
+              <Button size="lg" className="pixel-btn bg-navy-light text-foreground hover:bg-secondary">
                 Bekijk het klassement
               </Button>
             </Link>
           </div>
         </div>
+        <div className="flag-strip absolute inset-x-0 bottom-0" />
       </section>
 
       {/* Features */}
       <section className="mx-auto max-w-5xl px-4 pt-12">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-3">
           <FeatureCard
             icon={<CreditCard className="h-5 w-5 text-oranje" />}
             title="Betaalde deelname"
@@ -71,10 +78,10 @@ function Index() {
 
       {/* Matches */}
       <section className="mx-auto max-w-5xl px-4 py-16">
-        <h2 className="mb-8 text-center text-2xl font-bold text-foreground sm:text-3xl">
-          Nederlandse Groepswedstrijden
+        <h2 className="pixel-heading mb-10 text-center text-sm text-foreground sm:text-base">
+          <span className="text-oranje">★</span> Nederlandse Groepswedstrijden <span className="text-oranje">★</span>
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-3">
           <MatchCard
             round="Groepsfase • 1"
             date="Zondag 14 juni"
@@ -103,9 +110,9 @@ function Index() {
       </section>
 
       {/* How it works */}
-      <section className="bg-muted/50 py-16">
+      <section className="border-y-[3px] border-oranje/40 bg-navy py-16">
         <div className="mx-auto max-w-5xl px-4">
-          <h2 className="mb-10 text-center text-2xl font-bold text-foreground sm:text-3xl">
+          <h2 className="pixel-heading mb-10 text-center text-sm text-foreground sm:text-base">
             Hoe werkt het?
           </h2>
           <div className="grid gap-6 sm:grid-cols-3">
@@ -130,23 +137,18 @@ function Index() {
 
       {/* CTA */}
       <section className="mx-auto max-w-5xl px-4 py-16 text-center">
-        <h2 className="mb-4 text-2xl font-bold text-foreground sm:text-3xl">
+        <h2 className="pixel-heading mb-5 text-sm text-foreground sm:text-base">
           Klaar om mee te doen?
         </h2>
-        <p className="mb-6 text-muted-foreground">
+        <p className="mb-8 text-lg text-muted-foreground">
           Log in, regel je deelname en vul je voorspellingen op tijd in.
         </p>
         <Link to="/poule">
-          <Button size="lg" className="bg-oranje text-white hover:bg-oranje-dark">
+          <Button size="lg" className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
             Start je voorspellingen
           </Button>
         </Link>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        DutchMSP WK 2026 Poule
-      </footer>
     </div>
   );
 }
@@ -157,12 +159,12 @@ function FeatureCard({ icon, title, description }: {
   description: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-oranje/10">
+    <div className="pixel-card p-5">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center border-2 border-oranje bg-oranje/10">
         {icon}
       </div>
-      <h3 className="mb-1 font-semibold text-foreground">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <h3 className="pixel-heading mb-2 text-[0.65rem] text-foreground">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -176,24 +178,28 @@ function MatchCard({ round, date, time, home, away, venue }: {
   venue: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {round}
-      </div>
-      <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
-        <span>{date}</span>
-        <span className="rounded-full bg-oranje/10 px-2.5 py-0.5 font-medium text-oranje-dark">
-          {time}
+    <div className="pixel-card overflow-hidden p-0">
+      <div className="pattern-1988 px-4 py-2">
+        <span className="pixel-heading text-[0.55rem] text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+          {round}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-3 text-lg font-bold">
-        <span className={home === "Nederland" ? "text-oranje" : ""}>{home}</span>
-        <span className="text-base font-normal text-muted-foreground">vs</span>
-        <span className={away === "Nederland" ? "text-oranje" : ""}>{away}</span>
-      </div>
-      <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Users className="h-3.5 w-3.5" />
-        {venue}
+      <div className="p-5">
+        <div className="mb-3 flex items-center justify-between text-muted-foreground">
+          <span>{date}</span>
+          <span className="border border-oranje/50 bg-oranje/10 px-2 py-0.5 font-medium text-oranje-light">
+            {time}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-lg font-bold">
+          <span className={home === "Nederland" ? "text-oranje" : "text-foreground"}>{home}</span>
+          <span className="pixel-heading text-[0.55rem] text-muted-foreground">vs</span>
+          <span className={away === "Nederland" ? "text-oranje" : "text-foreground"}>{away}</span>
+        </div>
+        <div className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          {venue}
+        </div>
       </div>
     </div>
   );
@@ -205,12 +211,12 @@ function StepCard({ icon, title, description }: {
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-oranje/10">
+    <div className="pixel-card p-6 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center border-2 border-oranje bg-oranje/10">
         {icon}
       </div>
-      <h3 className="mb-2 font-semibold text-foreground">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <h3 className="pixel-heading mb-3 text-[0.6rem] leading-relaxed text-foreground">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   );
 }
