@@ -297,14 +297,14 @@ function MatchPredictionCard({
   onSave,
   isSaving,
   disabled,
-  paymentRequired,
+  pendingApproval,
 }: {
   match: any;
   prediction?: any;
   onSave: (home: number, away: number) => void;
   isSaving: boolean;
   disabled: boolean;
-  paymentRequired: boolean;
+  pendingApproval: boolean;
 }) {
   const [homeScore, setHomeScore] = useState<number | "">(
     prediction ? prediction.home_score : ""
@@ -394,7 +394,7 @@ function MatchPredictionCard({
 
         {disabled ? (
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            {paymentRequired ? "Betaal je deelname om voorspellingen in te vullen" : "Log in om je voorspelling in te vullen"}
+            Log in om je voorspelling in te vullen
           </p>
         ) : isLocked ? (
           <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
@@ -402,13 +402,21 @@ function MatchPredictionCard({
             Gesloten sinds {formattedLockTime}
           </p>
         ) : (
-          <Button
-            className="mt-4 w-full bg-oranje text-white hover:bg-oranje-dark disabled:opacity-50"
-            onClick={() => onSave(Number(homeScore), Number(awayScore))}
-            disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges || isLocked}
-          >
-            {isSaving ? "Opslaan..." : prediction ? "Wijziging opslaan" : "Voorspelling opslaan"}
-          </Button>
+          <>
+            <Button
+              className="mt-4 w-full bg-oranje text-white hover:bg-oranje-dark disabled:opacity-50"
+              onClick={() => onSave(Number(homeScore), Number(awayScore))}
+              disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges || isLocked}
+            >
+              {isSaving ? "Opslaan..." : prediction ? "Wijziging opslaan" : "Voorspelling opslaan"}
+            </Button>
+            {pendingApproval && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-oranje-dark">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Telt pas mee zodra de organisator je betaling akkoord geeft
+              </p>
+            )}
+          </>
         )}
       </div>
 
