@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2, CreditCard, Lock, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import introVideo from "@/assets/intro-video.mp4.asset.json";
+import introVideo from "@/assets/intro-video-v2.mp4.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Index,
