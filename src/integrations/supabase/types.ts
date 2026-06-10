@@ -82,45 +82,6 @@ export type Database = {
         }
         Relationships: []
       }
-      participant_payments: {
-        Row: {
-          amount_cents: number
-          created_at: string
-          currency: string
-          id: string
-          paid_at: string | null
-          provider: string
-          provider_reference: string | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount_cents?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          paid_at?: string | null
-          provider?: string
-          provider_reference?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount_cents?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          paid_at?: string | null
-          provider?: string
-          provider_reference?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       predictions: {
         Row: {
           away_score: number
