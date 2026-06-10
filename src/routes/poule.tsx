@@ -90,8 +90,10 @@ function PoulePage() {
           </p>
         </div>
 
+        <ParticipationCard participation={user ? participation : undefined} />
+
         {!user && (
-          <Card className="mb-8 p-6 text-center">
+          <Card className="mb-8 rounded-3xl border border-white/10 bg-white p-6 text-center shadow-2xl shadow-black/20">
             <AlertCircle className="mx-auto mb-3 h-8 w-8 text-oranje" />
             <h3 className="mb-2 font-semibold text-foreground">Log in om mee te doen</h3>
             <p className="mb-4 text-sm text-muted-foreground">
@@ -107,8 +109,6 @@ function PoulePage() {
 
         {user && (
           <>
-            <ParticipationCard participation={participation} />
-
             <MyStandCard
               matches={matches || []}
               predictions={predictions || []}
