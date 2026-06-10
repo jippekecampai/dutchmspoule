@@ -117,6 +117,9 @@ function AdminPage() {
                       >
                         <div>
                           <div className="font-bold text-foreground">{participant.display_name}</div>
+                          {participant.email && (
+                            <div className="break-all text-sm text-muted-foreground">{participant.email}</div>
+                          )}
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             {isPaid ? (
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
