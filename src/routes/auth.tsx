@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronDown, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Gamepad2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -36,7 +36,6 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [emailOpen, setEmailOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
@@ -71,100 +70,140 @@ function AuthPage() {
   };
 
   const handleOAuth = async (provider: "google" | "apple") => {
-    const { lovable } = await import("@/integrations/lovable/index");
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) toast.error(result.error.message || `${provider} login mislukt`);
+    setLoading(true);
+    try {
+      const { lovable } = await import("@/integrations/lovable/index");
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: `${window.location.origin}/poule`,
+      });
+      if (result.error) toast.error(result.error.message || `${provider} login mislukt`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-xl">
-        <div className="mb-6 text-2xl font-extrabold tracking-tight text-foreground">
-          Dutch MSP WK Poule
-        </div>
+    <div className="min-h-screen bg-[#07111f] px-4 py-8 text-foreground">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center">
+        <div className="grid w-full overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl shadow-black/30 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,#0f213f_0%,#0b3b2d_58%,#f97316_130%)] p-10 text-white lg:block">
+            <div className="absolute inset-x-0 bottom-0 h-2 bg-[linear-gradient(90deg,#f97316_0_33%,#ffffff_33%_66%,#16a34a_66%_100%)]" />
+            <div className="absolute -left-20 -top-20 h-44 w-44 rounded-full border-[20px] border-white/10" />
+            <div className="absolute -right-14 top-20 h-32 w-32 rounded-full border-[16px] border-oranje/30" />
+            <div className="relative flex h-full flex-col justify-between">
+              <div>
+                <div className="mb-8 flex items-center gap-3 text-xl font-extrabold">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-oranje">
+                    <Gamepad2 className="h-5 w-5" />
+                  </div>
+                  DutchMSP Poule
+                </div>
+                <h1 className="text-4xl font-extrabold leading-tight">
+                  Log in en vul je WK-voorspellingen in.
+                </h1>
+                <p className="mt-4 text-base font-medium text-white/75">
+                  Eén account voor je voorspellingen, punten en klassement.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-oranje-light">
+                  <Trophy className="h-4 w-4" />
+                  DutchMSP WK Poule
+                </div>
+                <p className="text-sm text-white/75">
+                  Betaal via de QR-code op de poulepagina en speel mee zodra je deelname bevestigd is.
+                </p>
+              </div>
+            </div>
+          </div>
 
-        <h1 className="mb-2 text-4xl font-extrabold text-foreground">Login</h1>
-        <p className="mb-8 text-muted-foreground">
-          Login om mee te doen met de WK Poule en je voorspellingen te beheren.
-        </p>
+          <div className="p-6 sm:p-8 lg:p-10">
+            <div className="mb-7 lg:hidden">
+              <div className="mb-4 flex items-center gap-3 text-xl font-extrabold text-navy">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-oranje text-white">
+                  <Gamepad2 className="h-5 w-5" />
+                </div>
+                DutchMSP Poule
+              </div>
+            </div>
 
-        <div className="space-y-3">
-          <button
-            onClick={() => handleOAuth("apple")}
-            className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 font-medium text-black transition hover:bg-white/90"
-          >
-            <AppleIcon className="h-5 w-5" />
-            Inloggen met Apple
-          </button>
-          <button
-            onClick={() => handleOAuth("google")}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-muted px-4 py-3 font-medium text-foreground transition hover:bg-muted/70"
-          >
-            <GoogleIcon className="h-5 w-5" />
-            Inloggen met Google
-          </button>
-        </div>
+            <h1 className="text-3xl font-extrabold text-navy sm:text-4xl">Inloggen</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Gebruik Google of log in met e-mail. Na inloggen ga je direct naar de poule.
+            </p>
 
-        <div className="my-6 border-t border-border" />
+            <div className="mt-7">
+              <button
+                onClick={() => handleOAuth("google")}
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-oranje px-4 py-3.5 font-bold text-white shadow-lg shadow-oranje/25 transition hover:bg-oranje-dark disabled:opacity-60"
+              >
+                <GoogleIcon className="h-5 w-5 rounded-full bg-white" />
+                Inloggen met Google
+              </button>
+            </div>
 
-        <button
-          onClick={() => setEmailOpen((v) => !v)}
-          className="flex w-full items-center justify-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          Geen Apple of Google?
-          <ChevronDown className={`h-4 w-4 transition-transform ${emailOpen ? "rotate-180" : ""}`} />
-        </button>
+            <div className="my-7 flex items-center gap-4">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">of met e-mail</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
 
-        {emailOpen && (
-          <div className="mt-6">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Inloggen</TabsTrigger>
-                <TabsTrigger value="register">Registreren</TabsTrigger>
+              <TabsList className="grid h-11 w-full grid-cols-2 rounded-2xl bg-muted p-1">
+                <TabsTrigger value="login" className="rounded-xl">Inloggen</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-xl">Registreren</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="login" className="space-y-4 pt-4">
+              <TabsContent value="login" className="space-y-4 pt-5">
                 <div>
                   <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="password">Wachtwoord</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11" />
                 </div>
-                <Button className="w-full bg-oranje text-white hover:bg-oranje-dark" onClick={handleSignIn} disabled={loading}>
+                <Button className="h-11 w-full bg-navy text-white hover:bg-navy-light" onClick={handleSignIn} disabled={loading}>
                   {loading ? "Bezig..." : "Inloggen"}
                 </Button>
               </TabsContent>
 
-              <TabsContent value="register" className="space-y-4 pt-4">
+              <TabsContent value="register" className="space-y-4 pt-5">
                 <div>
                   <Label htmlFor="name">Naam</Label>
-                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Je naam" />
+                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Je naam" className="mt-1 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="email-reg">E-mail</Label>
-                  <Input id="email-reg" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" />
+                  <Input id="email-reg" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="password-reg">Wachtwoord</Label>
-                  <Input id="password-reg" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                  <Input id="password-reg" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11" />
                 </div>
-                <Button className="w-full bg-oranje text-white hover:bg-oranje-dark" onClick={handleSignUp} disabled={loading}>
+                <Button className="h-11 w-full bg-oranje text-white hover:bg-oranje-dark" onClick={handleSignUp} disabled={loading}>
                   {loading ? "Bezig..." : "Account aanmaken"}
                 </Button>
               </TabsContent>
             </Tabs>
-          </div>
-        )}
 
-        <div className="mt-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            Terug naar home
-          </Link>
+            <button
+              onClick={() => handleOAuth("apple")}
+              disabled={loading}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-white px-4 py-3 text-sm font-semibold text-navy transition hover:bg-muted disabled:opacity-60"
+            >
+              <AppleIcon className="h-4 w-4" />
+              Inloggen met Apple
+            </button>
+
+            <div className="mt-8 text-center">
+              <Link to="/" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-4 w-4" />
+                Terug naar home
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
