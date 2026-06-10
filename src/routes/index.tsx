@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2, CreditCard, Lock, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import introVideo from "@/assets/intro-video-v2.mp4.asset.json";
+import { RetroGameIntro } from "@/components/RetroGameIntro";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -12,15 +12,6 @@ function Index() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b-[3px] border-oranje bg-navy py-20 sm:py-28">
-        <video
-          src={introVideo.url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-25"
-        />
-        <div className="absolute inset-0 bg-navy/70" />
         <div className="pattern-1988 absolute inset-x-0 top-0 h-3" />
         <div className="relative mx-auto max-w-5xl px-4 text-center">
           <div className="pixel-heading mb-6 inline-flex items-center gap-2 border-2 border-oranje bg-navy/80 px-4 py-2 text-[0.6rem] text-oranje-light">
@@ -32,12 +23,18 @@ function Index() {
             <br />
             <span className="text-oranje">WK Poule</span>
           </h1>
-          <p className="mx-auto mb-4 max-w-xl text-xl text-muted-foreground">
+          <p className="mx-auto mb-8 max-w-xl text-xl text-muted-foreground">
             Log in, betaal je deelname en voorspel de standen. Wijzigingen sluiten automatisch 10 minuten voor aftrap.
           </p>
+
+          {/* Arcade-scherm: 8-bit demo door de drie groepswedstrijden */}
+          <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
+            <RetroGameIntro className="block aspect-video w-full" />
+          </div>
           <p className="pixel-heading blink mb-8 text-[0.6rem] text-oranje-light">
             Press start to play
           </p>
+
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link to="/poule">
               <Button size="lg" className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
