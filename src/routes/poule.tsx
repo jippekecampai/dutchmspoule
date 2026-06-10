@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus } from "@/lib/pool.functions";
 import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock, QrCode, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
+import bunqQrAsset from "@/assets/bunq-qr.png.asset.json";
 
 const BUNQ_PAYMENT_URL = "https://bunq.me/mspwkpoule";
 
