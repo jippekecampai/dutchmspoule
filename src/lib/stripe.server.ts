@@ -11,7 +11,7 @@ export function getStripeClient() {
   }
 
   return new Stripe(stripeSecretKey, {
-    apiVersion: "2026-02-25.clover" as Stripe.LatestApiVersion,
+    apiVersion: "2026-02-25.clover" as Stripe.StripeConfig["apiVersion"],
   });
 }
 
