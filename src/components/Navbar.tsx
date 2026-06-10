@@ -25,10 +25,14 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur">
+    <nav className="sticky top-0 z-50 border-b-[3px] border-oranje bg-navy/95 backdrop-blur">
+      <div className="oranje-strip" />
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold text-foreground">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-oranje">
+        <Link
+          to="/"
+          className="pixel-heading flex items-center gap-2.5 text-[0.65rem] text-foreground sm:text-xs"
+        >
+          <div className="pattern-1988 flex h-9 w-9 items-center justify-center border-2 border-foreground">
             <Gamepad2 className="h-4 w-4 text-white" />
           </div>
           DutchMSP Poule
@@ -36,28 +40,31 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <Link to="/poule">
-            <Button variant="ghost" size="sm" className="gap-1.5">
+            <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base hover:bg-oranje/20 hover:text-oranje-light">
               <ListOrdered className="h-4 w-4" />
               <span className="hidden sm:inline">Poule</span>
             </Button>
           </Link>
           <Link to="/leaderboard">
-            <Button variant="ghost" size="sm" className="gap-1.5">
+            <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base hover:bg-oranje/20 hover:text-oranje-light">
               <Trophy className="h-4 w-4" />
               <span className="hidden sm:inline">Klassement</span>
             </Button>
           </Link>
 
           {user ? (
-            <>
-              <Button variant="ghost" size="sm" className="gap-1.5" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Uitloggen</span>
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 rounded-none text-base hover:bg-oranje/20 hover:text-oranje-light"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Uitloggen</span>
+            </Button>
           ) : (
             <Link to="/auth">
-              <Button size="sm" className="bg-oranje text-white hover:bg-oranje-dark gap-1.5">
+              <Button size="sm" className="pixel-btn gap-1.5 bg-oranje text-primary-foreground hover:bg-oranje-dark">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Inloggen</span>
               </Button>

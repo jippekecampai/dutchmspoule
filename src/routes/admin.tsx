@@ -2,10 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment } from "@/lib/pool.functions";
 import { Save, Lock, CreditCard, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -68,59 +66,60 @@ function AdminPage() {
   });
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <Navbar />
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground">Admin — Uitslagen</h1>
-          <p className="mt-1 text-muted-foreground">
-            Voer hier de uitslagen in na elke wedstrijd.
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <div className="mb-8 text-center">
+        <h1 className="pixel-heading text-base text-foreground sm:text-xl">Admin — Uitslagen</h1>
+        <p className="mt-3 text-lg text-muted-foreground">
+          Voer hier de uitslagen in na elke wedstrijd.
+        </p>
+      </div>
+
+      {adminLoading ? (
+        <div className="pixel-card p-8 text-center text-muted-foreground">Controleren...</div>
+      ) : !adminCheck?.isAdmin ? (
+        <div className="pixel-card p-8 text-center">
+          <Lock className="mx-auto mb-3 h-10 w-10 text-oranje" />
+          <h2 className="pixel-heading mb-3 text-xs">Geen toegang</h2>
+          <p className="text-muted-foreground">
+            Alleen admins kunnen uitslagen invoeren. Vraag de organisator om je admin-rechten te geven.
           </p>
         </div>
-
-        {adminLoading ? (
-          <Card className="p-8 text-center text-muted-foreground">Controleren...</Card>
-        ) : !adminCheck?.isAdmin ? (
-          <Card className="p-8 text-center">
-            <Lock className="mx-auto mb-3 h-10 w-10 text-oranje" />
-            <h2 className="mb-2 text-lg font-bold">Geen toegang</h2>
-            <p className="text-sm text-muted-foreground">
-              Alleen admins kunnen uitslagen invoeren. Vraag de organisator om je admin-rechten te geven.
-            </p>
-          </Card>
-        ) : (
-          <>
-            <div className="mb-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-oranje" />
-                <span>Je bent ingelogd als admin.</span>
-              </div>
+      ) : (
+        <>
+          <div className="pixel-card-flat mb-6 border-oranje/40 p-4 text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-oranje" />
+              <span>Je bent ingelogd als admin.</span>
             </div>
+          </div>
 
-            <Card className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-oranje" />
-                <h2 className="text-lg font-bold text-foreground">Deelnamebetalingen</h2>
-              </div>
+          <div className="pixel-card mb-8 overflow-hidden p-0">
+            <div className="pattern-1988 px-5 py-3">
+              <h2 className="pixel-heading flex items-center gap-2 text-[0.65rem] text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+                <CreditCard className="h-5 w-5" />
+                Deelnamebetalingen
+              </h2>
+            </div>
+            <div className="p-5">
               {(participants || []).length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nog geen geregistreerde deelnemers.</p>
+                <p className="text-muted-foreground">Nog geen geregistreerde deelnemers.</p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {(participants || []).map((participant) => {
                     const isPaid = participant.status === "paid";
                     return (
-                      <div key={participant.user_id} className="flex flex-col gap-3 rounded-xl border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div key={participant.user_id} className="flex flex-col gap-3 border-2 border-oranje/30 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <div className="font-semibold text-foreground">{participant.display_name}</div>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            {isPaid ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <XCircle className="h-3.5 w-3.5 text-muted-foreground" />}
+                          <div className="font-bold text-foreground">{participant.display_name}</div>
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            {isPaid ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <XCircle className="h-3.5 w-3.5 text-muted-foreground" />}
                             {isPaid ? "Betaald" : "Nog niet betaald"}
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                           <Button
                             size="sm"
-                            className="bg-oranje text-white hover:bg-oranje-dark"
+                            className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark"
                             disabled={paymentMutation.isPending || isPaid}
                             onClick={() =>
                               paymentMutation.mutate({
@@ -132,7 +131,7 @@ function AdminPage() {
                           </Button>
                           <Button
                             size="sm"
-                            variant="outline"
+                            className="pixel-btn bg-secondary text-foreground hover:bg-accent"
                             disabled={paymentMutation.isPending || !isPaid}
                             onClick={() =>
                               paymentMutation.mutate({
@@ -148,89 +147,108 @@ function AdminPage() {
                   })}
                 </div>
               )}
-            </Card>
+            </div>
+          </div>
 
-        <div className="space-y-4">
-          {(matches || []).map((match) => {
-            const existing = resultsMap.get(match.id);
-            const [homeScore, setHomeScore] = useState<number | "">(
-              existing ? existing.home_score : ""
-            );
-            const [awayScore, setAwayScore] = useState<number | "">(
-              existing ? existing.away_score : ""
-            );
+          <div className="space-y-6">
+            {(matches || []).map((match) => (
+              <ResultCard
+                key={match.id}
+                match={match}
+                existing={resultsMap.get(match.id)}
+                onSave={(home, away) =>
+                  saveMutation.mutate({
+                    data: { match_id: match.id, home_score: home, away_score: away },
+                  })
+                }
+                isSaving={saveMutation.isPending}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
-            const matchDate = new Date(match.match_date);
-            const formattedDate = matchDate.toLocaleDateString("nl-NL", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              hour: "2-digit",
-              minute: "2-digit",
-            });
+      <p className="mt-8 text-center text-muted-foreground">
+        <Link to="/" className="underline hover:text-foreground">
+          Terug naar home
+        </Link>
+      </p>
+    </main>
+  );
+}
 
-            return (
-              <Card key={match.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {match.round} · {formattedDate}
-                </div>
-                <div className="mb-4 flex items-center justify-between text-lg font-bold">
-                  <span className={match.home_team === "Nederland" ? "text-oranje" : ""}>
-                    {match.home_team}
-                  </span>
-                  <span className="text-muted-foreground text-base font-normal">vs</span>
-                  <span className={match.away_team === "Nederland" ? "text-oranje" : ""}>
-                    {match.away_team}
-                  </span>
-                </div>
-                <div className="flex items-center justify-center gap-3">
-                  <Input
-                    type="number"
-                    min={0}
-                    value={homeScore}
-                    onChange={(e) => setHomeScore(e.target.value === "" ? "" : parseInt(e.target.value))}
-                    className="h-14 w-16 text-center text-2xl font-bold"
-                    placeholder="-"
-                  />
-                  <span className="text-2xl font-light text-muted-foreground">:</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={awayScore}
-                    onChange={(e) => setAwayScore(e.target.value === "" ? "" : parseInt(e.target.value))}
-                    className="h-14 w-16 text-center text-2xl font-bold"
-                    placeholder="-"
-                  />
-                </div>
-                <Button
-                  className="mt-4 w-full bg-oranje text-white hover:bg-oranje-dark"
-                  onClick={() =>
-                    saveMutation.mutate({
-                      data: {
-                        match_id: match.id,
-                        home_score: Number(homeScore),
-                        away_score: Number(awayScore),
-                      },
-                    })
-                  }
-                  disabled={saveMutation.isPending || homeScore === "" || awayScore === ""}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {existing ? "Uitslag wijzigen" : "Uitslag opslaan"}
-                </Button>
-              </Card>
-            );
-          })}
+function ResultCard({
+  match,
+  existing,
+  onSave,
+  isSaving,
+}: {
+  match: { id: string; round: string; match_date: string; home_team: string; away_team: string };
+  existing?: { home_score: number; away_score: number };
+  onSave: (home: number, away: number) => void;
+  isSaving: boolean;
+}) {
+  const [homeScore, setHomeScore] = useState<number | "">(
+    existing ? existing.home_score : ""
+  );
+  const [awayScore, setAwayScore] = useState<number | "">(
+    existing ? existing.away_score : ""
+  );
+
+  const matchDate = new Date(match.match_date);
+  const formattedDate = matchDate.toLocaleDateString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return (
+    <div className="pixel-card overflow-hidden p-0">
+      <div className="pattern-1988 px-5 py-2">
+        <span className="pixel-heading text-[0.55rem] text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+          {match.round} · {formattedDate}
+        </span>
+      </div>
+      <div className="p-5">
+        <div className="mb-4 flex items-center justify-between text-xl font-bold">
+          <span className={match.home_team === "Nederland" ? "text-oranje" : "text-foreground"}>
+            {match.home_team}
+          </span>
+          <span className="pixel-heading text-[0.5rem] text-muted-foreground">vs</span>
+          <span className={match.away_team === "Nederland" ? "text-oranje" : "text-foreground"}>
+            {match.away_team}
+          </span>
         </div>
-          </>
-        )}
-
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          <Link to="/" className="underline hover:text-foreground">
-            Terug naar home
-          </Link>
-        </p>
-      </main>
+        <div className="flex items-center justify-center gap-3">
+          <Input
+            type="number"
+            min={0}
+            value={homeScore}
+            onChange={(e) => setHomeScore(e.target.value === "" ? "" : parseInt(e.target.value))}
+            className="h-14 w-16 rounded-none border-2 border-oranje/60 text-center !text-3xl font-bold"
+            placeholder="-"
+          />
+          <span className="pixel-heading text-sm text-muted-foreground">:</span>
+          <Input
+            type="number"
+            min={0}
+            value={awayScore}
+            onChange={(e) => setAwayScore(e.target.value === "" ? "" : parseInt(e.target.value))}
+            className="h-14 w-16 rounded-none border-2 border-oranje/60 text-center !text-3xl font-bold"
+            placeholder="-"
+          />
+        </div>
+        <Button
+          className="pixel-btn mt-5 w-full bg-oranje text-primary-foreground hover:bg-oranje-dark"
+          onClick={() => onSave(Number(homeScore), Number(awayScore))}
+          disabled={isSaving || homeScore === "" || awayScore === ""}
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {existing ? "Uitslag wijzigen" : "Uitslag opslaan"}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -51,89 +51,58 @@
   --color-navy: var(--navy);
   --color-navy-light: var(--navy-light);
   --color-gold: var(--gold);
+  --font-pixel: "Press Start 2P", "Courier New", monospace;
+  --font-retro: "VT323", "Courier New", monospace;
 }
 
+/*
+ * EK '88 / retro gaming thema — donker CRT-scherm met Oranje '88 accenten.
+ * Eén thema voor de hele app; geen aparte light/dark variant.
+ */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.98 0.005 260);
-  --foreground: oklch(0.15 0.03 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.03 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.03 260);
-  --primary: oklch(0.65 0.18 45);
-  --primary-foreground: oklch(0.98 0.005 260);
-  --secondary: oklch(0.95 0.01 250);
-  --secondary-foreground: oklch(0.25 0.03 260);
-  --muted: oklch(0.95 0.01 250);
-  --muted-foreground: oklch(0.55 0.03 260);
-  --accent: oklch(0.95 0.01 250);
-  --accent-foreground: oklch(0.25 0.03 260);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.9 0.015 250);
-  --input: oklch(0.9 0.015 250);
-  --ring: oklch(0.65 0.18 45);
-  --chart-1: oklch(0.65 0.18 45);
+  --radius: 0rem;
+  --background: oklch(0.17 0.03 265);
+  --foreground: oklch(0.96 0.01 90);
+  --card: oklch(0.22 0.035 265);
+  --card-foreground: oklch(0.96 0.01 90);
+  --popover: oklch(0.22 0.035 265);
+  --popover-foreground: oklch(0.96 0.01 90);
+  --primary: oklch(0.68 0.2 45);
+  --primary-foreground: oklch(0.15 0.03 265);
+  --secondary: oklch(0.27 0.04 265);
+  --secondary-foreground: oklch(0.96 0.01 90);
+  --muted: oklch(0.27 0.04 265);
+  --muted-foreground: oklch(0.72 0.03 80);
+  --accent: oklch(0.27 0.04 265);
+  --accent-foreground: oklch(0.96 0.01 90);
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.97 0.01 90);
+  --border: oklch(0.68 0.2 45 / 35%);
+  --input: oklch(0.3 0.04 265);
+  --ring: oklch(0.68 0.2 45);
+  --chart-1: oklch(0.68 0.2 45);
   --chart-2: oklch(0.55 0.15 220);
   --chart-3: oklch(0.45 0.1 160);
   --chart-4: oklch(0.7 0.12 80);
   --chart-5: oklch(0.5 0.15 300);
-  --sidebar: oklch(0.98 0.005 260);
-  --sidebar-foreground: oklch(0.15 0.03 260);
-  --sidebar-primary: oklch(0.65 0.18 45);
-  --sidebar-primary-foreground: oklch(0.98 0.005 260);
-  --sidebar-accent: oklch(0.95 0.01 250);
-  --sidebar-accent-foreground: oklch(0.25 0.03 260);
-  --sidebar-border: oklch(0.9 0.015 250);
-  --sidebar-ring: oklch(0.65 0.18 45);
-  --oranje: oklch(0.65 0.18 45);
-  --oranje-light: oklch(0.75 0.14 45);
-  --oranje-dark: oklch(0.55 0.2 45);
-  --navy: oklch(0.25 0.05 260);
-  --navy-light: oklch(0.35 0.06 260);
-  --gold: oklch(0.75 0.15 85);
+  --sidebar: oklch(0.22 0.035 265);
+  --sidebar-foreground: oklch(0.96 0.01 90);
+  --sidebar-primary: oklch(0.68 0.2 45);
+  --sidebar-primary-foreground: oklch(0.15 0.03 265);
+  --sidebar-accent: oklch(0.27 0.04 265);
+  --sidebar-accent-foreground: oklch(0.96 0.01 90);
+  --sidebar-border: oklch(0.68 0.2 45 / 35%);
+  --sidebar-ring: oklch(0.68 0.2 45);
+  --oranje: oklch(0.68 0.2 45);
+  --oranje-light: oklch(0.78 0.15 55);
+  --oranje-dark: oklch(0.58 0.21 40);
+  --navy: oklch(0.22 0.035 265);
+  --navy-light: oklch(0.32 0.05 265);
+  --gold: oklch(0.8 0.16 85);
 }
 
 .dark {
-  --background: oklch(0.12 0.02 260);
-  --foreground: oklch(0.95 0.005 260);
-  --card: oklch(0.18 0.03 260);
-  --card-foreground: oklch(0.95 0.005 260);
-  --popover: oklch(0.18 0.03 260);
-  --popover-foreground: oklch(0.95 0.005 260);
-  --primary: oklch(0.65 0.18 45);
-  --primary-foreground: oklch(0.98 0.005 260);
-  --secondary: oklch(0.22 0.04 260);
-  --secondary-foreground: oklch(0.95 0.005 260);
-  --muted: oklch(0.22 0.04 260);
-  --muted-foreground: oklch(0.65 0.03 260);
-  --accent: oklch(0.22 0.04 260);
-  --accent-foreground: oklch(0.95 0.005 260);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.18 45);
-  --chart-1: oklch(0.65 0.18 45);
-  --chart-2: oklch(0.55 0.15 220);
-  --chart-3: oklch(0.45 0.1 160);
-  --chart-4: oklch(0.7 0.12 80);
-  --chart-5: oklch(0.5 0.15 300);
-  --sidebar: oklch(0.18 0.03 260);
-  --sidebar-foreground: oklch(0.95 0.005 260);
-  --sidebar-primary: oklch(0.65 0.18 45);
-  --sidebar-primary-foreground: oklch(0.98 0.005 260);
-  --sidebar-accent: oklch(0.22 0.04 260);
-  --sidebar-accent-foreground: oklch(0.95 0.005 260);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.65 0.18 45);
-  --oranje: oklch(0.65 0.18 45);
-  --oranje-light: oklch(0.75 0.14 45);
-  --oranje-dark: oklch(0.55 0.2 45);
-  --navy: oklch(0.25 0.05 260);
-  --navy-light: oklch(0.35 0.06 260);
-  --gold: oklch(0.75 0.15 85);
+  --oranje: oklch(0.68 0.2 45);
 }
 
 @layer base {
@@ -144,5 +113,138 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-retro);
+    font-size: 1.2rem;
+    line-height: 1.35;
+    image-rendering: pixelated;
+  }
+
+  /* CRT-scanlines over het hele scherm */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgb(0 0 0 / 0.14) 0px,
+      rgb(0 0 0 / 0.14) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-pixel);
+  }
+
+  /* Pixel-fonts zijn groot; standaard koppen iets terugschalen */
+  h1 {
+    line-height: 1.3;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: var(--font-retro);
+  }
+}
+
+@layer components {
+  /* Hard-edged pixelkader zoals oude game-menu's */
+  .pixel-card {
+    border-radius: 0;
+    border: 3px solid var(--color-oranje);
+    background-color: var(--color-card);
+    box-shadow:
+      0 0 0 3px oklch(0.12 0.02 265),
+      6px 6px 0 0 oklch(0.12 0.02 265 / 0.9);
+  }
+
+  .pixel-card-flat {
+    border-radius: 0;
+    border: 3px solid var(--color-oranje);
+    background-color: var(--color-card);
+  }
+
+  .pixel-btn {
+    border-radius: 0 !important;
+    font-family: var(--font-pixel);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 3px solid oklch(0.12 0.02 265);
+    box-shadow: 4px 4px 0 0 oklch(0.12 0.02 265);
+    transition: transform 75ms, box-shadow 75ms;
+  }
+
+  .pixel-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 0 oklch(0.12 0.02 265);
+  }
+
+  /* Het iconische zigzag-patroon van het Oranje EK'88-shirt */
+  .pattern-1988 {
+    background-color: oklch(0.62 0.21 42);
+    background-image:
+      linear-gradient(135deg, oklch(0.72 0.18 50) 25%, transparent 25%),
+      linear-gradient(225deg, oklch(0.72 0.18 50) 25%, transparent 25%),
+      linear-gradient(45deg, oklch(0.55 0.21 38) 25%, transparent 25%),
+      linear-gradient(315deg, oklch(0.55 0.21 38) 25%, transparent 25%);
+    background-position:
+      14px 0,
+      14px 0,
+      0 0,
+      0 0;
+    background-size: 28px 28px;
+    background-repeat: repeat;
+  }
+
+  /* Rood-wit-blauwe vlagstrip als blokjes */
+  .flag-strip {
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      #c8102e 0 24px,
+      #ffffff 24px 48px,
+      #003da5 48px 72px
+    );
+  }
+
+  /* Oranje accentstrip */
+  .oranje-strip {
+    height: 4px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-oranje) 0 16px,
+      oklch(0.55 0.21 38) 16px 32px
+    );
+  }
+
+  .pixel-heading {
+    font-family: var(--font-pixel);
+    text-transform: uppercase;
+  }
+
+  .blink {
+    animation: pixel-blink 1.2s steps(2, start) infinite;
+  }
+
+  @keyframes pixel-blink {
+    to {
+      visibility: hidden;
+    }
+  }
+
+  /* Subtiel pixelraster op de achtergrond */
+  .pixel-grid-bg {
+    background-image:
+      linear-gradient(oklch(1 0 0 / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 }

@@ -83,34 +83,32 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07111f] px-4 py-8 text-foreground">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center">
-        <div className="grid w-full overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl shadow-black/30 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,#0f213f_0%,#0b3b2d_58%,#f97316_130%)] p-10 text-white lg:block">
-            <div className="absolute inset-x-0 bottom-0 h-2 bg-[linear-gradient(90deg,#f97316_0_33%,#ffffff_33%_66%,#16a34a_66%_100%)]" />
-            <div className="absolute -left-20 -top-20 h-44 w-44 rounded-full border-[20px] border-white/10" />
-            <div className="absolute -right-14 top-20 h-32 w-32 rounded-full border-[16px] border-oranje/30" />
-            <div className="relative flex h-full flex-col justify-between">
+    <main className="px-4 py-8">
+      <div className="mx-auto flex w-full max-w-5xl items-center">
+        <div className="pixel-card grid w-full overflow-hidden p-0 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="pattern-1988 relative hidden overflow-hidden p-10 text-white lg:block">
+            <div className="flag-strip absolute inset-x-0 bottom-0" />
+            <div className="relative flex h-full flex-col justify-between [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
               <div>
-                <div className="mb-8 flex items-center gap-3 text-xl font-extrabold">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-oranje">
-                    <Gamepad2 className="h-5 w-5" />
+                <div className="pixel-heading mb-8 flex items-center gap-3 text-xs">
+                  <div className="flex h-11 w-11 items-center justify-center border-[3px] border-white bg-navy shadow-[3px_3px_0_0_rgb(0_0_0/0.5)]">
+                    <Gamepad2 className="h-5 w-5 text-oranje" />
                   </div>
                   DutchMSP Poule
                 </div>
-                <h1 className="text-4xl font-extrabold leading-tight">
+                <h1 className="pixel-heading text-lg leading-relaxed">
                   Log in en vul je WK-voorspellingen in.
                 </h1>
-                <p className="mt-4 text-base font-medium text-white/75">
+                <p className="mt-4 text-lg font-medium">
                   Eén account voor je voorspellingen, punten en klassement.
                 </p>
               </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-oranje-light">
+              <div className="border-[3px] border-white/60 bg-navy/70 p-5 backdrop-blur">
+                <div className="pixel-heading mb-3 flex items-center gap-2 text-[0.6rem] text-oranje-light">
                   <Trophy className="h-4 w-4" />
                   DutchMSP WK Poule
                 </div>
-                <p className="text-sm text-white/75">
+                <p className="text-white/90">
                   Betaal via de QR-code op de poulepagina en speel mee zodra je deelname bevestigd is.
                 </p>
               </div>
@@ -119,16 +117,16 @@ function AuthPage() {
 
           <div className="p-6 sm:p-8 lg:p-10">
             <div className="mb-7 lg:hidden">
-              <div className="mb-4 flex items-center gap-3 text-xl font-extrabold text-navy">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-oranje text-white">
+              <div className="pixel-heading mb-4 flex items-center gap-3 text-xs text-foreground">
+                <div className="pattern-1988 flex h-10 w-10 items-center justify-center border-2 border-foreground text-white">
                   <Gamepad2 className="h-5 w-5" />
                 </div>
                 DutchMSP Poule
               </div>
             </div>
 
-            <h1 className="text-3xl font-extrabold text-navy sm:text-4xl">Inloggen</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h1 className="pixel-heading text-lg text-foreground sm:text-xl">Inloggen</h1>
+            <p className="mt-3 text-muted-foreground">
               Gebruik Google of log in met e-mail. Na inloggen ga je direct naar de poule.
             </p>
 
@@ -136,7 +134,7 @@ function AuthPage() {
               <button
                 onClick={() => handleOAuth("google")}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-oranje px-4 py-3.5 font-bold text-white shadow-lg shadow-oranje/25 transition hover:bg-oranje-dark disabled:opacity-60"
+                className="pixel-btn flex w-full items-center justify-center gap-3 bg-oranje px-4 py-3.5 text-primary-foreground transition hover:bg-oranje-dark disabled:opacity-60"
               >
                 <GoogleIcon className="h-5 w-5 rounded-full bg-white" />
                 Inloggen met Google
@@ -145,26 +143,26 @@ function AuthPage() {
 
             <div className="my-7 flex items-center gap-4">
               <div className="h-px flex-1 bg-border" />
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">of met e-mail</span>
+              <span className="pixel-heading text-[0.55rem] text-muted-foreground">of met e-mail</span>
               <div className="h-px flex-1 bg-border" />
             </div>
 
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid h-11 w-full grid-cols-2 rounded-2xl bg-muted p-1">
-                <TabsTrigger value="login" className="rounded-xl">Inloggen</TabsTrigger>
-                <TabsTrigger value="register" className="rounded-xl">Registreren</TabsTrigger>
+              <TabsList className="grid h-11 w-full grid-cols-2 rounded-none border-2 border-oranje/40 bg-muted p-1">
+                <TabsTrigger value="login" className="rounded-none">Inloggen</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-none">Registreren</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="space-y-4 pt-5">
                 <div>
                   <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11" />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <div>
                   <Label htmlFor="password">Wachtwoord</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11" />
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
-                <Button className="h-11 w-full bg-navy text-white hover:bg-navy-light" onClick={handleSignIn} disabled={loading}>
+                <Button className="pixel-btn h-11 w-full bg-navy-light text-foreground hover:bg-secondary" onClick={handleSignIn} disabled={loading}>
                   {loading ? "Bezig..." : "Inloggen"}
                 </Button>
               </TabsContent>
@@ -172,17 +170,17 @@ function AuthPage() {
               <TabsContent value="register" className="space-y-4 pt-5">
                 <div>
                   <Label htmlFor="name">Naam</Label>
-                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Je naam" className="mt-1 h-11" />
+                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Je naam" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <div>
                   <Label htmlFor="email-reg">E-mail</Label>
-                  <Input id="email-reg" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11" />
+                  <Input id="email-reg" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <div>
                   <Label htmlFor="password-reg">Wachtwoord</Label>
-                  <Input id="password-reg" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11" />
+                  <Input id="password-reg" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
-                <Button className="h-11 w-full bg-oranje text-white hover:bg-oranje-dark" onClick={handleSignUp} disabled={loading}>
+                <Button className="pixel-btn h-11 w-full bg-oranje text-primary-foreground hover:bg-oranje-dark" onClick={handleSignUp} disabled={loading}>
                   {loading ? "Bezig..." : "Account aanmaken"}
                 </Button>
               </TabsContent>
@@ -191,14 +189,14 @@ function AuthPage() {
             <button
               onClick={() => handleOAuth("apple")}
               disabled={loading}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-white px-4 py-3 text-sm font-semibold text-navy transition hover:bg-muted disabled:opacity-60"
+              className="pixel-btn mt-5 flex w-full items-center justify-center gap-2 bg-secondary px-4 py-3 text-foreground transition hover:bg-accent disabled:opacity-60"
             >
               <AppleIcon className="h-4 w-4" />
               Inloggen met Apple
             </button>
 
             <div className="mt-8 text-center">
-              <Link to="/" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
+              <Link to="/" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" />
                 Terug naar home
               </Link>
@@ -206,6 +204,6 @@ function AuthPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
