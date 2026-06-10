@@ -74,18 +74,20 @@ function PoulePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(234,88,12,0.22),transparent_30%),radial-gradient(circle_at_top_right,rgba(22,163,74,0.18),transparent_28%),linear-gradient(180deg,#eef5ff_0%,#f8fbff_38%,#edf7f0_100%)]">
+    <div className="min-h-screen bg-[#07111f] text-foreground">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-8 overflow-hidden rounded-3xl border border-white/70 bg-navy px-5 py-8 text-center text-white shadow-xl shadow-navy/10">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-oranje shadow-lg shadow-oranje/30">
+        <div className="relative mb-8 overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(135deg,#0f213f_0%,#0b3b2d_58%,#f97316_130%)] px-5 py-9 text-center text-white shadow-2xl shadow-black/25">
+          <div className="absolute inset-x-0 bottom-0 h-2 bg-[linear-gradient(90deg,#f97316_0_33%,#ffffff_33%_66%,#16a34a_66%_100%)]" />
+          <div className="absolute -left-16 -top-16 h-36 w-36 rounded-full border-[18px] border-white/10" />
+          <div className="absolute -right-12 top-10 h-28 w-28 rounded-full border-[14px] border-oranje/30" />
+          <div className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-oranje shadow-lg shadow-oranje/30">
             <Trophy className="h-6 w-6" />
           </div>
-          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Je WK Voorspellingen</h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-white/75 sm:text-base">
+          <h1 className="relative text-3xl font-extrabold text-white sm:text-5xl">DutchMSP WK Poule</h1>
+          <p className="relative mx-auto mt-2 max-w-xl text-sm font-medium text-white/80 sm:text-base">
             Vul je standen in. Aanpassen kan tot 10 minuten voor aanvang.
           </p>
-          <div className="mx-auto mt-5 h-1.5 max-w-sm rounded-full bg-[linear-gradient(90deg,#f97316_0_33%,#ffffff_33%_66%,#16a34a_66%_100%)]" />
         </div>
 
         {!user && (
@@ -118,7 +120,7 @@ function PoulePage() {
         {matchesLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 animate-pulse rounded-2xl bg-card" />
+              <div key={i} className="h-48 animate-pulse rounded-3xl bg-white/15" />
             ))}
           </div>
         ) : (
@@ -179,7 +181,7 @@ function ParticipationCard({
   }
 
   return (
-    <Card className="mb-6 rounded-3xl border border-oranje/35 bg-white/90 p-5 shadow-lg shadow-oranje/10">
+    <Card className="mb-6 rounded-3xl border border-oranje/50 bg-[#fff7ed] p-5 shadow-2xl shadow-black/20">
       <div className="mx-auto flex max-w-2xl gap-3">
         <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-oranje-dark" />
         <div>
@@ -190,7 +192,7 @@ function ParticipationCard({
         </div>
       </div>
 
-      <div className="mx-auto mt-5 flex max-w-2xl flex-col items-center justify-center gap-5 rounded-2xl border border-oranje/50 bg-[linear-gradient(135deg,#020617_0%,#071426_58%,#111827_100%)] p-5 text-center shadow-xl shadow-navy/15 sm:flex-row sm:p-6">
+      <div className="mx-auto mt-5 flex max-w-xl flex-col items-center justify-center gap-5 rounded-2xl border border-oranje/60 bg-black p-5 text-center shadow-xl shadow-navy/20">
         <div className="rounded-2xl bg-black p-3 shadow-sm ring-1 ring-white/15">
           <img src={bunqQrAsset.url} alt="bunq QR voor mspwkpoule" width={180} height={180} className="block h-44 w-44 object-contain" />
         </div>
@@ -235,8 +237,8 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
   }
 
   return (
-    <Card className="mb-8 overflow-hidden rounded-3xl border border-navy/10 bg-white/95 p-0 shadow-lg shadow-navy/10">
-      <div className="bg-[linear-gradient(90deg,#0f213f,#132b52)] px-5 py-3 text-white">
+    <Card className="mb-8 overflow-hidden rounded-3xl border border-white/10 bg-white p-0 shadow-2xl shadow-black/20">
+      <div className="bg-[linear-gradient(90deg,#f97316,#0f213f_36%,#0b3b2d)] px-5 py-3 text-white">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
           <Trophy className="h-4 w-4 text-oranje" /> Mijn stand
         </h2>
@@ -346,8 +348,8 @@ function MatchPredictionCard({
   const isNederlandHome = match.home_team === "Nederland";
 
   return (
-    <Card className="overflow-hidden rounded-3xl border border-navy/10 bg-white/95 p-0 shadow-lg shadow-navy/10">
-      <div className="bg-[linear-gradient(90deg,#0f213f,#132b52)] px-5 py-3 text-white">
+    <Card className="overflow-hidden rounded-3xl border border-white/10 bg-white p-0 shadow-2xl shadow-black/20">
+      <div className="bg-[linear-gradient(90deg,#f97316,#0f213f_36%,#0b3b2d)] px-5 py-3 text-white">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wide opacity-80">
             {match.round}
