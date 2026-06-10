@@ -186,16 +186,16 @@ function ParticipationCard({
         </div>
       </div>
 
-      <div className="mt-5 flex flex-col items-center gap-4 rounded-xl border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="rounded-lg bg-white p-2 shadow-sm">
+      <div className="mt-5 flex flex-col items-center gap-4 rounded-xl border border-oranje/40 bg-black p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-lg bg-black p-2 shadow-sm ring-1 ring-white/10">
           <img src={bunqQrAsset.url} alt="bunq QR voor mspwkpoule" width={180} height={180} className="block h-44 w-44 object-contain" />
         </div>
 
         <div className="flex-1 text-center sm:text-left">
-          <div className="flex items-center justify-center gap-2 text-sm font-semibold text-foreground sm:justify-start">
-            <QrCode className="h-4 w-4 text-oranje-dark" /> Scan met je telefoon
+          <div className="flex items-center justify-center gap-2 text-sm font-semibold text-white sm:justify-start">
+            <QrCode className="h-4 w-4 text-oranje" /> Scan met je telefoon
           </div>
-          <p className="mt-1 text-xs text-muted-foreground break-all">{BUNQ_PAYMENT_URL}</p>
+          <p className="mt-1 break-all text-xs text-oranje-light">{BUNQ_PAYMENT_URL}</p>
           <a href={BUNQ_PAYMENT_URL} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block">
             <Button className="bg-oranje text-white hover:bg-oranje-dark">
               <ExternalLink className="mr-2 h-4 w-4" /> Open betaallink
