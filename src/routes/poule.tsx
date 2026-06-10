@@ -74,14 +74,18 @@ function PoulePage() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(234,88,12,0.22),transparent_30%),radial-gradient(circle_at_top_right,rgba(22,163,74,0.18),transparent_28%),linear-gradient(180deg,#eef5ff_0%,#f8fbff_38%,#edf7f0_100%)]">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground">Je Voorspellingen</h1>
-          <p className="mt-1 text-muted-foreground">
+      <main className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mb-8 overflow-hidden rounded-3xl border border-white/70 bg-navy px-5 py-8 text-center text-white shadow-xl shadow-navy/10">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-oranje shadow-lg shadow-oranje/30">
+            <Trophy className="h-6 w-6" />
+          </div>
+          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Je WK Voorspellingen</h1>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-white/75 sm:text-base">
             Vul je standen in. Aanpassen kan tot 10 minuten voor aanvang.
           </p>
+          <div className="mx-auto mt-5 h-1.5 max-w-sm rounded-full bg-[linear-gradient(90deg,#f97316_0_33%,#ffffff_33%_66%,#16a34a_66%_100%)]" />
         </div>
 
         {!user && (
@@ -175,24 +179,24 @@ function ParticipationCard({
   }
 
   return (
-    <Card className="mb-6 rounded-2xl border border-oranje/30 bg-oranje/10 p-5">
-      <div className="flex gap-3">
+    <Card className="mb-6 rounded-3xl border border-oranje/35 bg-white/90 p-5 shadow-lg shadow-oranje/10">
+      <div className="mx-auto flex max-w-2xl gap-3">
         <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-oranje-dark" />
         <div>
-          <div className="font-semibold text-foreground">Betaling nodig om mee te spelen</div>
+          <div className="font-semibold text-navy">Betaling nodig om mee te spelen</div>
           <div className="mt-1 text-sm text-muted-foreground">
             Inleg {amount}. Scan de QR-code of open de betaallink. Zodra de organisator je betaling bevestigt, wordt je account geactiveerd en kun je voorspellen.
           </div>
         </div>
       </div>
 
-      <div className="mt-5 flex flex-col items-center gap-4 rounded-xl border border-oranje/40 bg-black p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="rounded-lg bg-black p-2 shadow-sm ring-1 ring-white/10">
+      <div className="mx-auto mt-5 flex max-w-2xl flex-col items-center justify-center gap-5 rounded-2xl border border-oranje/50 bg-[linear-gradient(135deg,#020617_0%,#071426_58%,#111827_100%)] p-5 text-center shadow-xl shadow-navy/15 sm:flex-row sm:p-6">
+        <div className="rounded-2xl bg-black p-3 shadow-sm ring-1 ring-white/15">
           <img src={bunqQrAsset.url} alt="bunq QR voor mspwkpoule" width={180} height={180} className="block h-44 w-44 object-contain" />
         </div>
 
-        <div className="flex-1 text-center sm:text-left">
-          <div className="flex items-center justify-center gap-2 text-sm font-semibold text-white sm:justify-start">
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-2 text-sm font-semibold text-white">
             <QrCode className="h-4 w-4 text-oranje" /> Scan met je telefoon
           </div>
           <p className="mt-1 break-all text-xs text-oranje-light">{BUNQ_PAYMENT_URL}</p>
@@ -204,7 +208,7 @@ function ParticipationCard({
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-muted-foreground">
+      <p className="mt-3 text-center text-xs text-muted-foreground">
         Na betaling controleert de organisator je inleg en activeert je account handmatig.
       </p>
     </Card>
@@ -231,8 +235,8 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
   }
 
   return (
-    <Card className="mb-8 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-sm">
-      <div className="bg-navy px-5 py-3 text-white">
+    <Card className="mb-8 overflow-hidden rounded-3xl border border-navy/10 bg-white/95 p-0 shadow-lg shadow-navy/10">
+      <div className="bg-[linear-gradient(90deg,#0f213f,#132b52)] px-5 py-3 text-white">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
           <Trophy className="h-4 w-4 text-oranje" /> Mijn stand
         </h2>
@@ -342,8 +346,8 @@ function MatchPredictionCard({
   const isNederlandHome = match.home_team === "Nederland";
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-sm">
-      <div className="bg-navy px-5 py-3 text-white">
+    <Card className="overflow-hidden rounded-3xl border border-navy/10 bg-white/95 p-0 shadow-lg shadow-navy/10">
+      <div className="bg-[linear-gradient(90deg,#0f213f,#132b52)] px-5 py-3 text-white">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wide opacity-80">
             {match.round}
@@ -358,12 +362,12 @@ function MatchPredictionCard({
       </div>
 
       <div className="p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className={`text-lg font-bold ${isNederlandHome ? "text-oranje" : ""}`}>
+        <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <div className={`text-lg font-extrabold ${isNederlandHome ? "text-oranje" : "text-navy"}`}>
             {match.home_team}
           </div>
-          <div className="text-sm text-muted-foreground">vs</div>
-          <div className={`text-lg font-bold ${!isNederlandHome ? "text-oranje" : ""}`}>
+          <div className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold uppercase text-green-700 ring-1 ring-green-200">vs</div>
+          <div className={`text-right text-lg font-extrabold ${!isNederlandHome ? "text-oranje" : "text-navy"}`}>
             {match.away_team}
           </div>
         </div>
