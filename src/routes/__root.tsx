@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@DutchMSP" },
+      { name: "twitter:title", content: "DutchMSP WK 2026 Poule" },
+      { name: "twitter:description", content: "Voorspel de uitslagen van Nederland op het WK 2026. Doe mee met de DutchMSP poule!" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca942588-1273-44db-b68d-6e71f18a4975/id-preview-6a2fb246--70b33e81-c67e-4a41-b9b1-088f9b20a9f1.lovable.app-1781079116376.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca942588-1273-44db-b68d-6e71f18a4975/id-preview-6a2fb246--70b33e81-c67e-4a41-b9b1-088f9b20a9f1.lovable.app-1781079116376.png" },
     ],
     links: [
       {
