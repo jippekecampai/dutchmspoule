@@ -19,6 +19,11 @@ const PaymentStatusSchema = z.object({
 
 const PREDICTION_LOCK_MINUTES = 10;
 
+// Deze accounts krijgen automatisch adminrechten bij hun eerste bezoek.
+const ADMIN_EMAILS = ["janneke@campai.nl"];
+
+const CLAIM_PREFIX = "claimed:";
+
 export const getMatches = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
     .from("matches")
@@ -80,19 +85,51 @@ export const getParticipationStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await supabaseAdmin
       .from("participant_payments")
-      .select("status, amount_cents, currency, provider, paid_at")
+      .select("status, amount_cents, currency, provider, provider_reference, paid_at")
       .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
 
+    const ref = data?.provider_reference || "";
+    const hasClaimed = data?.status !== "paid" && ref.startsWith(CLAIM_PREFIX);
+
     return {
       isPaid: data?.status === "paid",
       status: data?.status || "pending",
+      hasClaimed,
+      claimedAt: hasClaimed ? ref.slice(CLAIM_PREFIX.length) : null,
       amountCents: data?.amount_cents || ENTRY_FEE_CENTS,
       currency: data?.currency || "eur",
       provider: data?.provider || "manual",
       paidAt: data?.paid_at || null,
     };
+  });
+
+// Deelnemer meldt zelf dat de inleg is overgemaakt; de admin bevestigt daarna.
+export const claimPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: existing, error: existingErr } = await supabaseAdmin
+      .from("participant_payments")
+      .select("status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (existingErr) throw new Error(existingErr.message);
+    if (existing?.status === "paid") return { success: true, alreadyPaid: true };
+
+    const { error } = await supabaseAdmin
+      .from("participant_payments")
+      .upsert({
+        user_id: context.userId,
+        status: "pending",
+        amount_cents: ENTRY_FEE_CENTS,
+        currency: "eur",
+        provider: "bunq",
+        provider_reference: `${CLAIM_PREFIX}${new Date().toISOString()}`,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+    if (error) throw new Error(error.message);
+    return { success: true, alreadyPaid: false };
   });
 
 export const createEntryFeeCheckout = createServerFn({ method: "POST" })
@@ -241,18 +278,25 @@ export const getParticipantPayments = createServerFn({ method: "GET" })
 
     const paymentMap = new Map((payments || []).map((payment) => [payment.user_id, payment]));
 
-    return (profiles || []).map((profile) => {
-      const payment = paymentMap.get(profile.id);
-      return {
-        user_id: profile.id,
-        display_name: profile.display_name,
-        status: payment?.status || "pending",
-        amount_cents: payment?.amount_cents || ENTRY_FEE_CENTS,
-        currency: payment?.currency || "eur",
-        provider_reference: payment?.provider_reference || null,
-        paid_at: payment?.paid_at || null,
-      };
-    });
+    return (profiles || [])
+      .map((profile) => {
+        const payment = paymentMap.get(profile.id);
+        const ref = payment?.provider_reference || "";
+        const hasClaimed = payment?.status !== "paid" && ref.startsWith(CLAIM_PREFIX);
+        return {
+          user_id: profile.id,
+          display_name: profile.display_name,
+          status: payment?.status || "pending",
+          has_claimed: hasClaimed,
+          claimed_at: hasClaimed ? ref.slice(CLAIM_PREFIX.length) : null,
+          amount_cents: payment?.amount_cents || ENTRY_FEE_CENTS,
+          currency: payment?.currency || "eur",
+          provider_reference: payment?.provider_reference || null,
+          paid_at: payment?.paid_at || null,
+        };
+      })
+      // Gemelde betalingen bovenaan, zodat de admin ze direct ziet.
+      .sort((a, b) => Number(b.has_claimed) - Number(a.has_claimed));
   });
 
 export const saveMatchResult = createServerFn({ method: "POST" })
@@ -286,7 +330,22 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
       _role: "admin",
     });
     if (error) throw new Error(error.message);
-    return { isAdmin: !!data };
+    if (data) return { isAdmin: true };
+
+    // E-mails op de allowlist krijgen de adminrol automatisch toegekend.
+    const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    if (userErr) throw new Error(userErr.message);
+    const email = user.user.email?.toLowerCase();
+    if (!email || !ADMIN_EMAILS.includes(email)) return { isAdmin: false };
+
+    const { error: grantErr } = await supabaseAdmin
+      .from("user_roles")
+      .upsert(
+        { user_id: context.userId, role: "admin" },
+        { onConflict: "user_id,role", ignoreDuplicates: true }
+      );
+    if (grantErr) throw new Error(grantErr.message);
+    return { isAdmin: true };
   });
 
 export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {

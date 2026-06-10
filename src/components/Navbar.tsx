@@ -1,12 +1,23 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Gamepad2, LogOut, User, Trophy, ListOrdered } from "lucide-react";
+import { checkIsAdmin } from "@/lib/pool.functions";
+import { Gamepad2, LogOut, User, Trophy, ListOrdered, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const [user, setUser] = useState<null | { id: string; email?: string }>(null);
   const navigate = useNavigate();
+
+  const fetchIsAdmin = useServerFn(checkIsAdmin);
+  const { data: adminCheck } = useQuery({
+    queryKey: ["is_admin"],
+    queryFn: fetchIsAdmin,
+    enabled: !!user,
+    retry: false,
+  });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -51,6 +62,14 @@ export function Navbar() {
               <span className="hidden sm:inline">Klassement</span>
             </Button>
           </Link>
+          {adminCheck?.isAdmin && (
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base text-gold hover:bg-gold/20 hover:text-gold">
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Button>
+            </Link>
+          )}
 
           {user ? (
             <Button

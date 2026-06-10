@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment } from "@/lib/pool.functions";
-import { Save, Lock, CreditCard, CheckCircle2, XCircle } from "lucide-react";
+import { Save, Lock, CreditCard, CheckCircle2, XCircle, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -107,13 +107,29 @@ function AdminPage() {
                 <div className="space-y-4">
                   {(participants || []).map((participant) => {
                     const isPaid = participant.status === "paid";
+                    const hasClaimed = !isPaid && participant.has_claimed;
                     return (
-                      <div key={participant.user_id} className="flex flex-col gap-3 border-2 border-oranje/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div
+                        key={participant.user_id}
+                        className={`flex flex-col gap-3 border-2 p-4 sm:flex-row sm:items-center sm:justify-between ${
+                          hasClaimed ? "border-gold bg-gold/10" : "border-oranje/30"
+                        }`}
+                      >
                         <div>
                           <div className="font-bold text-foreground">{participant.display_name}</div>
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            {isPaid ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <XCircle className="h-3.5 w-3.5 text-muted-foreground" />}
-                            {isPaid ? "Betaald" : "Nog niet betaald"}
+                            {isPaid ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                            ) : hasClaimed ? (
+                              <HandCoins className="h-3.5 w-3.5 text-gold" />
+                            ) : (
+                              <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                            {isPaid
+                              ? "Betaald"
+                              : hasClaimed
+                              ? `Zegt betaald te hebben${participant.claimed_at ? ` (${new Date(participant.claimed_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })})` : ""} — bevestigen?`
+                              : "Nog niet betaald"}
                           </div>
                         </div>
                         <div className="flex gap-3">
