@@ -305,9 +305,18 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     .select("id, display_name, avatar_url");
   if (profError) throw new Error(profError.message);
 
+  // Only paid users count for the leaderboard.
+  const { data: paidRows, error: paidErr } = await supabaseAdmin
+    .from("participant_payments")
+    .select("user_id")
+    .eq("status", "paid");
+  if (paidErr) throw new Error(paidErr.message);
+  const paidUserIds = new Set((paidRows || []).map((p) => p.user_id));
+
   const scoreMap = new Map<string, number>();
 
   for (const pred of predictions || []) {
+    if (!paidUserIds.has(pred.user_id)) continue;
     const result = (results || []).find((r) => r.match_id === pred.match_id);
     if (!result) continue;
 
@@ -330,6 +339,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   }
 
   const leaderboard = (profiles || [])
+    .filter((p) => paidUserIds.has(p.id))
     .map((p) => ({
       user_id: p.id,
       display_name: p.display_name,
@@ -340,3 +350,4 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
 
   return leaderboard;
 });
+
