@@ -39,8 +39,8 @@ export const getPredictions = createServerFn({ method: "GET" })
     return data || [];
   });
 
-// Only returns predictions for matches that already have a final result.
-// This prevents leaking other players' picks before kick-off.
+// Only returns predictions for matches that already have a final result,
+// and only for users whose payment has been approved by an admin.
 export const getRevealedPredictions = createServerFn({ method: "GET" }).handler(async () => {
   const { data: results, error: resErr } = await supabaseAdmin
     .from("match_results")
@@ -49,13 +49,23 @@ export const getRevealedPredictions = createServerFn({ method: "GET" }).handler(
   const revealedIds = (results || []).map((r) => r.match_id);
   if (revealedIds.length === 0) return [];
 
+  const { data: paidRows, error: paidErr } = await supabaseAdmin
+    .from("participant_payments")
+    .select("user_id")
+    .eq("status", "paid");
+  if (paidErr) throw new Error(paidErr.message);
+  const paidUserIds = (paidRows || []).map((p) => p.user_id);
+  if (paidUserIds.length === 0) return [];
+
   const { data, error } = await supabaseAdmin
     .from("predictions")
     .select("match_id, home_score, away_score, user_id, profiles:user_id(display_name)")
-    .in("match_id", revealedIds);
+    .in("match_id", revealedIds)
+    .in("user_id", paidUserIds);
   if (error) throw new Error(error.message);
   return data || [];
 });
+
 
 export const getMatchResults = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
@@ -155,16 +165,6 @@ export const savePrediction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => ScoreSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { data: payment, error: paymentErr } = await supabaseAdmin
-      .from("participant_payments")
-      .select("status")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (paymentErr) throw new Error(paymentErr.message);
-    if (payment?.status !== "paid") {
-      throw new Error("Je betaling is nog niet bevestigd. Daarna kun je voorspellingen invullen.");
-    }
-
     // Block predictions 10 minutes before kick-off.
     const { data: match, error: matchErr } = await supabaseAdmin
       .from("matches")
@@ -189,6 +189,7 @@ export const savePrediction = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { success: true };
   });
+
 
 export const markParticipantPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -304,9 +305,18 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     .select("id, display_name, avatar_url");
   if (profError) throw new Error(profError.message);
 
+  // Only paid users count for the leaderboard.
+  const { data: paidRows, error: paidErr } = await supabaseAdmin
+    .from("participant_payments")
+    .select("user_id")
+    .eq("status", "paid");
+  if (paidErr) throw new Error(paidErr.message);
+  const paidUserIds = new Set((paidRows || []).map((p) => p.user_id));
+
   const scoreMap = new Map<string, number>();
 
   for (const pred of predictions || []) {
+    if (!paidUserIds.has(pred.user_id)) continue;
     const result = (results || []).find((r) => r.match_id === pred.match_id);
     if (!result) continue;
 
@@ -329,6 +339,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   }
 
   const leaderboard = (profiles || [])
+    .filter((p) => paidUserIds.has(p.id))
     .map((p) => ({
       user_id: p.id,
       display_name: p.display_name,
@@ -339,3 +350,4 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
 
   return leaderboard;
 });
+

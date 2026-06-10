@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus } from "@/lib/pool.functions";
 import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock, QrCode, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
+import bunqQrAsset from "@/assets/bunq-qr.png.asset.json";
 
 const BUNQ_PAYMENT_URL = "https://bunq.me/mspwkpoule";
 
@@ -130,8 +130,9 @@ function PoulePage() {
                   })
                 }
                 isSaving={saveMutation.isPending}
-                disabled={!user || participation?.isPaid !== true}
-                paymentRequired={!!user && participation?.isPaid !== true}
+                disabled={!user}
+                pendingApproval={!!user && participation?.isPaid !== true}
+
               />
             ))}
           </div>
@@ -187,8 +188,9 @@ function ParticipationCard({
 
       <div className="mt-5 flex flex-col items-center gap-4 rounded-xl border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="rounded-lg bg-white p-2 shadow-sm">
-          <QRCodeSVG value={BUNQ_PAYMENT_URL} size={160} level="M" includeMargin={false} />
+          <img src={bunqQrAsset.url} alt="bunq QR voor mspwkpoule" width={180} height={180} className="block h-44 w-44 object-contain" />
         </div>
+
         <div className="flex-1 text-center sm:text-left">
           <div className="flex items-center justify-center gap-2 text-sm font-semibold text-foreground sm:justify-start">
             <QrCode className="h-4 w-4 text-oranje-dark" /> Scan met je telefoon
@@ -295,14 +297,14 @@ function MatchPredictionCard({
   onSave,
   isSaving,
   disabled,
-  paymentRequired,
+  pendingApproval,
 }: {
   match: any;
   prediction?: any;
   onSave: (home: number, away: number) => void;
   isSaving: boolean;
   disabled: boolean;
-  paymentRequired: boolean;
+  pendingApproval: boolean;
 }) {
   const [homeScore, setHomeScore] = useState<number | "">(
     prediction ? prediction.home_score : ""
@@ -392,7 +394,7 @@ function MatchPredictionCard({
 
         {disabled ? (
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            {paymentRequired ? "Betaal je deelname om voorspellingen in te vullen" : "Log in om je voorspelling in te vullen"}
+            Log in om je voorspelling in te vullen
           </p>
         ) : isLocked ? (
           <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
@@ -400,13 +402,21 @@ function MatchPredictionCard({
             Gesloten sinds {formattedLockTime}
           </p>
         ) : (
-          <Button
-            className="mt-4 w-full bg-oranje text-white hover:bg-oranje-dark disabled:opacity-50"
-            onClick={() => onSave(Number(homeScore), Number(awayScore))}
-            disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges || isLocked}
-          >
-            {isSaving ? "Opslaan..." : prediction ? "Wijziging opslaan" : "Voorspelling opslaan"}
-          </Button>
+          <>
+            <Button
+              className="mt-4 w-full bg-oranje text-white hover:bg-oranje-dark disabled:opacity-50"
+              onClick={() => onSave(Number(homeScore), Number(awayScore))}
+              disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges || isLocked}
+            >
+              {isSaving ? "Opslaan..." : prediction ? "Wijziging opslaan" : "Voorspelling opslaan"}
+            </Button>
+            {pendingApproval && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-oranje-dark">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Telt pas mee zodra de organisator je betaling akkoord geeft
+              </p>
+            )}
+          </>
         )}
       </div>
 
