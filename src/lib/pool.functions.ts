@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getAppUrl, getStripeClient, ENTRY_FEE_CENTS, ENTRY_FEE_CURRENCY } from "@/lib/stripe.server";
+import { getServerConfig } from "@/lib/config.server";
 import { z } from "zod";
 
 const ScoreSchema = z.object({
@@ -8,6 +10,14 @@ const ScoreSchema = z.object({
   home_score: z.number().int().min(0).max(50),
   away_score: z.number().int().min(0).max(50),
 });
+
+const PaymentStatusSchema = z.object({
+  user_id: z.string().uuid(),
+  status: z.enum(["pending", "paid", "refunded", "failed"]),
+  provider_reference: z.string().trim().max(200).optional(),
+});
+
+const PREDICTION_LOCK_MINUTES = 10;
 
 export const getMatches = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
@@ -55,11 +65,107 @@ export const getMatchResults = createServerFn({ method: "GET" }).handler(async (
   return data || [];
 });
 
+export const getParticipationStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await supabaseAdmin
+      .from("participant_payments")
+      .select("status, amount_cents, currency, provider, paid_at")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+
+    return {
+      isPaid: data?.status === "paid",
+      status: data?.status || "pending",
+      amountCents: data?.amount_cents || ENTRY_FEE_CENTS,
+      currency: data?.currency || "eur",
+      provider: data?.provider || "manual",
+      paidAt: data?.paid_at || null,
+    };
+  });
+
+export const createEntryFeeCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: existingPayment, error: existingPaymentErr } = await supabaseAdmin
+      .from("participant_payments")
+      .select("status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (existingPaymentErr) throw new Error(existingPaymentErr.message);
+    if (existingPayment?.status === "paid") {
+      return { url: "/poule" };
+    }
+
+    const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    if (userErr) throw new Error(userErr.message);
+
+    const stripe = getStripeClient();
+    const appUrl = getAppUrl();
+    const { stripeEntryFeePriceId } = getServerConfig();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${appUrl}/poule?payment=success`,
+      cancel_url: `${appUrl}/poule?payment=cancelled`,
+      customer_email: user.user.email || undefined,
+      client_reference_id: context.userId,
+      metadata: {
+        user_id: context.userId,
+        purpose: "wk_poule_entry_fee",
+      },
+      line_items: [
+        stripeEntryFeePriceId
+          ? {
+              price: stripeEntryFeePriceId,
+              quantity: 1,
+            }
+          : {
+              price_data: {
+                currency: ENTRY_FEE_CURRENCY,
+                product_data: {
+                  name: "DutchMSP WK Poule deelname",
+                },
+                unit_amount: ENTRY_FEE_CENTS,
+              },
+              quantity: 1,
+            },
+      ],
+    });
+
+    if (!session.url) throw new Error("Stripe Checkout session heeft geen URL teruggegeven.");
+
+    await supabaseAdmin
+      .from("participant_payments")
+      .upsert({
+        user_id: context.userId,
+        status: "pending",
+        amount_cents: ENTRY_FEE_CENTS,
+        currency: ENTRY_FEE_CURRENCY,
+        provider: "stripe",
+        provider_reference: session.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+
+    return { url: session.url };
+  });
+
 export const savePrediction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => ScoreSchema.parse(data))
   .handler(async ({ data, context }) => {
-    // Block predictions after kick-off
+    const { data: payment, error: paymentErr } = await supabaseAdmin
+      .from("participant_payments")
+      .select("status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (paymentErr) throw new Error(paymentErr.message);
+    if (payment?.status !== "paid") {
+      throw new Error("Je betaling is nog niet bevestigd. Daarna kun je voorspellingen invullen.");
+    }
+
+    // Block predictions 10 minutes before kick-off.
     const { data: match, error: matchErr } = await supabaseAdmin
       .from("matches")
       .select("match_date")
@@ -67,8 +173,9 @@ export const savePrediction = createServerFn({ method: "POST" })
       .maybeSingle();
     if (matchErr) throw new Error(matchErr.message);
     if (!match) throw new Error("Wedstrijd niet gevonden");
-    if (new Date(match.match_date).getTime() <= Date.now()) {
-      throw new Error("De wedstrijd is al begonnen — voorspelling vergrendeld.");
+    const lockAt = new Date(match.match_date).getTime() - PREDICTION_LOCK_MINUTES * 60 * 1000;
+    if (lockAt <= Date.now()) {
+      throw new Error("Voorspellingen sluiten 10 minuten voor aanvang van de wedstrijd.");
     }
 
     const { error } = await context.supabase
@@ -81,6 +188,70 @@ export const savePrediction = createServerFn({ method: "POST" })
       }, { onConflict: "user_id,match_id" });
     if (error) throw new Error(error.message);
     return { success: true };
+  });
+
+export const markParticipantPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => PaymentStatusSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Alleen admins kunnen betaalstatussen aanpassen.");
+
+    const { error } = await supabaseAdmin
+      .from("participant_payments")
+      .upsert({
+        user_id: data.user_id,
+        status: data.status,
+        amount_cents: ENTRY_FEE_CENTS,
+        currency: "eur",
+        provider: "manual",
+        provider_reference: data.provider_reference || null,
+        paid_at: data.status === "paid" ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const getParticipantPayments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Alleen admins kunnen deelnemers bekijken.");
+
+    const { data: profiles, error: profilesErr } = await supabaseAdmin
+      .from("profiles")
+      .select("id, display_name")
+      .order("display_name");
+    if (profilesErr) throw new Error(profilesErr.message);
+
+    const { data: payments, error: paymentsErr } = await supabaseAdmin
+      .from("participant_payments")
+      .select("user_id, status, amount_cents, currency, provider_reference, paid_at");
+    if (paymentsErr) throw new Error(paymentsErr.message);
+
+    const paymentMap = new Map((payments || []).map((payment) => [payment.user_id, payment]));
+
+    return (profiles || []).map((profile) => {
+      const payment = paymentMap.get(profile.id);
+      return {
+        user_id: profile.id,
+        display_name: profile.display_name,
+        status: payment?.status || "pending",
+        amount_cents: payment?.amount_cents || ENTRY_FEE_CENTS,
+        currency: payment?.currency || "eur",
+        provider_reference: payment?.provider_reference || null,
+        paid_at: payment?.paid_at || null,
+      };
+    });
   });
 
 export const saveMatchResult = createServerFn({ method: "POST" })

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2 } from "lucide-react";
+import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2, CreditCard, Lock, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import introVideo from "@/assets/intro-video.mp4.asset.json";
 
@@ -21,10 +21,6 @@ function Index() {
           className="absolute inset-0 h-full w-full object-cover opacity-30"
         />
         <div className="absolute inset-0 bg-navy/60" />
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-oranje" />
-          <div className="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-oranje-light" />
-        </div>
         <div className="relative mx-auto max-w-5xl px-4 text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-oranje/20 px-4 py-1.5 text-sm font-medium text-oranje-light backdrop-blur">
             <Gamepad2 className="h-4 w-4" />
@@ -34,7 +30,7 @@ function Index() {
             DutchMSP WK Poule
           </h1>
           <p className="mx-auto mb-8 max-w-xl text-lg text-muted-foreground">
-            Voorspel de uitslagen van Nederland op het WK in de VS. Wie wordt de kampioen van de groep?
+            Log in, betaal je deelname en voorspel de standen. Wijzigingen sluiten automatisch 10 minuten voor aftrap.
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link to="/poule">
@@ -49,6 +45,27 @@ function Index() {
               </Button>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto max-w-5xl px-4 pt-12">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FeatureCard
+            icon={<CreditCard className="h-5 w-5 text-oranje" />}
+            title="Betaalde deelname"
+            description="Alleen bevestigde deelnemers kunnen voorspellingen opslaan."
+          />
+          <FeatureCard
+            icon={<Lock className="h-5 w-5 text-oranje" />}
+            title="Deadline per wedstrijd"
+            description="Inzendingen worden 10 minuten voor aanvang vergrendeld."
+          />
+          <FeatureCard
+            icon={<ListChecks className="h-5 w-5 text-oranje" />}
+            title="Controleerbare ranglijst"
+            description="Punten en uitslagen blijven centraal zichtbaar na gespeelde wedstrijden."
+          />
         </div>
       </section>
 
@@ -94,18 +111,18 @@ function Index() {
           <div className="grid gap-6 sm:grid-cols-3">
             <StepCard
               icon={<Shield className="h-6 w-6 text-oranje" />}
-              title="1. Voorspel"
-              description="Geef je voorspelling door voor elke NL-wedstrijd. Wie wint en met hoeveel?"
+              title="1. Login en betaal"
+              description="Maak een account aan. Je deelname wordt actief na bevestigde betaling."
             />
             <StepCard
               icon={<Calendar className="h-6 w-6 text-oranje" />}
-              title="2. Wacht af"
-              description="Kijk de wedstrijd en zie of je voorspelling uitkomt."
+              title="2. Vul standen in"
+              description="Voorspel per wedstrijd de exacte stand en pas aan tot 10 minuten voor aftrap."
             />
             <StepCard
               icon={<Trophy className="h-6 w-6 text-oranje" />}
-              title="3. Win!"
-              description="1 punt per juiste winnaar. De meeste punten = de prijs!"
+              title="3. Volg de ranglijst"
+              description="Na uitslagen wordt het klassement bijgewerkt en blijven voorspellingen controleerbaar."
             />
           </div>
         </div>
@@ -117,7 +134,7 @@ function Index() {
           Klaar om mee te doen?
         </h2>
         <p className="mb-6 text-muted-foreground">
-          Log in, doe je voorspellingen, en maak kans op de hoofdprijs!
+          Log in, regel je deelname en vul je voorspellingen op tijd in.
         </p>
         <Link to="/poule">
           <Button size="lg" className="bg-oranje text-white hover:bg-oranje-dark">
@@ -130,6 +147,22 @@ function Index() {
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         DutchMSP WK 2026 Poule
       </footer>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description }: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-oranje/10">
+        {icon}
+      </div>
+      <h3 className="mb-1 font-semibold text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }

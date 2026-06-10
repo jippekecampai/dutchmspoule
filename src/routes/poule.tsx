@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { getMatches, getPredictions, savePrediction, getMatchResults } from "@/lib/pool.functions";
-import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed } from "lucide-react";
+import { getMatches, getPredictions, savePrediction, getMatchResults, getParticipationStatus, createEntryFeeCheckout } from "@/lib/pool.functions";
+import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/poule")({
@@ -28,6 +28,8 @@ function PoulePage() {
   const fetchMatches = useServerFn(getMatches);
   const fetchPredictions = useServerFn(getPredictions);
   const fetchResults = useServerFn(getMatchResults);
+  const fetchParticipation = useServerFn(getParticipationStatus);
+  const createCheckout = useServerFn(createEntryFeeCheckout);
   const savePred = useServerFn(savePrediction);
 
   const { data: matches, isLoading: matchesLoading } = useQuery({
@@ -39,6 +41,13 @@ function PoulePage() {
     queryKey: ["predictions"],
     queryFn: fetchPredictions,
     enabled: !!user,
+  });
+
+  const { data: participation } = useQuery({
+    queryKey: ["participation-status"],
+    queryFn: fetchParticipation,
+    enabled: !!user,
+    retry: false,
   });
 
   const { data: results } = useQuery({
@@ -56,6 +65,14 @@ function PoulePage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const checkoutMutation = useMutation({
+    mutationFn: createCheckout,
+    onSuccess: ({ url }) => {
+      window.location.href = url;
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const getUserPrediction = (matchId: string) => {
     return (predictions || []).find((p) => p.match_id === matchId);
   };
@@ -67,7 +84,7 @@ function PoulePage() {
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground">Je Voorspellingen</h1>
           <p className="mt-1 text-muted-foreground">
-            1 punt per juiste winnaar. Vul in voor elke wedstrijd!
+            Vul je standen in. Aanpassen kan tot 10 minuten voor aanvang.
           </p>
         </div>
 
@@ -87,11 +104,18 @@ function PoulePage() {
         )}
 
         {user && (
-          <MyStandCard
-            matches={matches || []}
-            predictions={predictions || []}
-            results={results || []}
-          />
+          <>
+            <ParticipationCard
+              participation={participation}
+              onCheckout={() => checkoutMutation.mutate({ data: undefined })}
+              isCheckingOut={checkoutMutation.isPending}
+            />
+            <MyStandCard
+              matches={matches || []}
+              predictions={predictions || []}
+              results={results || []}
+            />
+          </>
         )}
 
         {matchesLoading ? (
@@ -113,13 +137,77 @@ function PoulePage() {
                   })
                 }
                 isSaving={saveMutation.isPending}
-                disabled={!user}
+                disabled={!user || participation?.isPaid !== true}
+                paymentRequired={!!user && participation?.isPaid !== true}
               />
             ))}
           </div>
         )}
       </main>
     </div>
+  );
+}
+
+function ParticipationCard({
+  participation,
+  onCheckout,
+  isCheckingOut,
+}: {
+  participation?: {
+    isPaid: boolean;
+    status: string;
+    amountCents: number;
+    currency: string;
+    paidAt: string | null;
+  };
+  onCheckout: () => void;
+  isCheckingOut: boolean;
+}) {
+  const amount = new Intl.NumberFormat("nl-NL", {
+    style: "currency",
+    currency: participation?.currency || "EUR",
+  }).format((participation?.amountCents || 1000) / 100);
+
+  if (participation?.isPaid) {
+    return (
+      <Card className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="h-5 w-5 text-emerald-700" />
+          <div>
+            <div className="font-semibold">Deelname bevestigd</div>
+            <div className="text-sm text-emerald-800">
+              Je betaling is verwerkt. Je kunt voorspellingen invullen tot 10 minuten voor de wedstrijd.
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="mb-6 rounded-2xl border border-oranje/30 bg-oranje/10 p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-3">
+          <CreditCard className="mt-0.5 h-5 w-5 text-oranje-dark" />
+          <div>
+            <div className="font-semibold text-foreground">Betaling nodig om mee te spelen</div>
+            <div className="mt-1 text-sm text-muted-foreground">
+              Inleg {amount}. Na bevestiging wordt voorspellen automatisch vrijgegeven.
+            </div>
+          </div>
+        </div>
+        <Button
+          className="bg-oranje text-white hover:bg-oranje-dark"
+          onClick={onCheckout}
+          disabled={isCheckingOut}
+        >
+          {isCheckingOut ? "Checkout openen..." : "Betaal deelname"}
+        </Button>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Je wordt doorgestuurd naar Stripe Checkout. Na succesvolle betaling wordt deelname automatisch bevestigd.
+      </p>
+    </Card>
   );
 }
 
@@ -209,12 +297,14 @@ function MatchPredictionCard({
   onSave,
   isSaving,
   disabled,
+  paymentRequired,
 }: {
   match: any;
   prediction?: any;
   onSave: (home: number, away: number) => void;
   isSaving: boolean;
   disabled: boolean;
+  paymentRequired: boolean;
 }) {
   const [homeScore, setHomeScore] = useState<number | "">(
     prediction ? prediction.home_score : ""
@@ -227,13 +317,24 @@ function MatchPredictionCard({
     homeScore !== prediction.home_score ||
     awayScore !== prediction.away_score;
 
+  useEffect(() => {
+    setHomeScore(prediction ? prediction.home_score : "");
+    setAwayScore(prediction ? prediction.away_score : "");
+  }, [prediction?.home_score, prediction?.away_score]);
+
   const matchDate = new Date(match.match_date);
+  const lockDate = new Date(matchDate.getTime() - 10 * 60 * 1000);
+  const isLocked = lockDate.getTime() <= Date.now();
   const formattedDate = matchDate.toLocaleDateString("nl-NL", {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
   const formattedTime = matchDate.toLocaleTimeString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const formattedLockTime = lockDate.toLocaleTimeString("nl-NL", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -274,7 +375,7 @@ function MatchPredictionCard({
             max={20}
             value={homeScore}
             onChange={(e) => setHomeScore(e.target.value === "" ? "" : parseInt(e.target.value))}
-            disabled={disabled}
+            disabled={disabled || isLocked}
             className="h-14 w-16 text-center text-2xl font-bold"
             placeholder="-"
           />
@@ -285,7 +386,7 @@ function MatchPredictionCard({
             max={20}
             value={awayScore}
             onChange={(e) => setAwayScore(e.target.value === "" ? "" : parseInt(e.target.value))}
-            disabled={disabled}
+            disabled={disabled || isLocked}
             className="h-14 w-16 text-center text-2xl font-bold"
             placeholder="-"
           />
@@ -293,22 +394,33 @@ function MatchPredictionCard({
 
         {disabled ? (
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Log in om je voorspelling in te vullen
+            {paymentRequired ? "Betaal je deelname om voorspellingen in te vullen" : "Log in om je voorspelling in te vullen"}
+          </p>
+        ) : isLocked ? (
+          <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <Lock className="h-3.5 w-3.5" />
+            Gesloten sinds {formattedLockTime}
           </p>
         ) : (
           <Button
             className="mt-4 w-full bg-oranje text-white hover:bg-oranje-dark disabled:opacity-50"
             onClick={() => onSave(Number(homeScore), Number(awayScore))}
-            disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges}
+            disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges || isLocked}
           >
             {isSaving ? "Opslaan..." : prediction ? "Wijziging opslaan" : "Voorspelling opslaan"}
           </Button>
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 border-t border-border px-5 py-2 text-xs text-muted-foreground">
-        <MapPin className="h-3 w-3" />
-        {match.venue}
+      <div className="flex flex-col gap-1 border-t border-border px-5 py-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <span className="flex items-center gap-1.5">
+          <MapPin className="h-3 w-3" />
+          {match.venue}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Lock className="h-3 w-3" />
+          Sluit {formattedLockTime}
+        </span>
       </div>
     </Card>
   );

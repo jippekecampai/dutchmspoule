@@ -6,8 +6,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin } from "@/lib/pool.functions";
-import { Save, Lock } from "lucide-react";
+import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment } from "@/lib/pool.functions";
+import { Save, Lock, CreditCard, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -20,6 +20,8 @@ function AdminPage() {
   const fetchResults = useServerFn(getMatchResults);
   const saveResult = useServerFn(saveMatchResult);
   const fetchIsAdmin = useServerFn(checkIsAdmin);
+  const fetchParticipants = useServerFn(getParticipantPayments);
+  const markPayment = useServerFn(markParticipantPayment);
 
   const { data: adminCheck, isLoading: adminLoading } = useQuery({
     queryKey: ["is_admin"],
@@ -37,6 +39,12 @@ function AdminPage() {
     queryFn: fetchResults,
   });
 
+  const { data: participants } = useQuery({
+    queryKey: ["participant_payments"],
+    queryFn: fetchParticipants,
+    enabled: !!adminCheck?.isAdmin,
+  });
+
   const resultsMap = new Map((results || []).map((r) => [r.match_id, r]));
 
   const saveMutation = useMutation({
@@ -45,6 +53,16 @@ function AdminPage() {
       queryClient.invalidateQueries({ queryKey: ["match_results"] });
       queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
       toast.success("Uitslag opgeslagen!");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const paymentMutation = useMutation({
+    mutationFn: markPayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["participant_payments"] });
+      queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      toast.success("Betaalstatus bijgewerkt");
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -78,6 +96,59 @@ function AdminPage() {
                 <span>Je bent ingelogd als admin.</span>
               </div>
             </div>
+
+            <Card className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-oranje" />
+                <h2 className="text-lg font-bold text-foreground">Deelnamebetalingen</h2>
+              </div>
+              {(participants || []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nog geen geregistreerde deelnemers.</p>
+              ) : (
+                <div className="space-y-3">
+                  {(participants || []).map((participant) => {
+                    const isPaid = participant.status === "paid";
+                    return (
+                      <div key={participant.user_id} className="flex flex-col gap-3 rounded-xl border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <div className="font-semibold text-foreground">{participant.display_name}</div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            {isPaid ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <XCircle className="h-3.5 w-3.5 text-muted-foreground" />}
+                            {isPaid ? "Betaald" : "Nog niet betaald"}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="bg-oranje text-white hover:bg-oranje-dark"
+                            disabled={paymentMutation.isPending || isPaid}
+                            onClick={() =>
+                              paymentMutation.mutate({
+                                data: { user_id: participant.user_id, status: "paid" },
+                              })
+                            }
+                          >
+                            Markeer betaald
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={paymentMutation.isPending || !isPaid}
+                            onClick={() =>
+                              paymentMutation.mutate({
+                                data: { user_id: participant.user_id, status: "pending" },
+                              })
+                            }
+                          >
+                            Zet open
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
 
         <div className="space-y-4">
           {(matches || []).map((match) => {

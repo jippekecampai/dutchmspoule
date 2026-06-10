@@ -14,6 +14,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 
 const PouleRoute = PouleRouteImport.update({
   id: '/poule',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/leaderboard' | '/poule'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/leaderboard'
+    | '/poule'
+    | '/api/stripe/webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/leaderboard' | '/poule'
-  id: '__root__' | '/' | '/admin' | '/auth' | '/leaderboard' | '/poule'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/leaderboard'
+    | '/poule'
+    | '/api/stripe/webhook'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/leaderboard'
+    | '/poule'
+    | '/api/stripe/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PouleRoute: typeof PouleRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,7 +161,18 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   LeaderboardRoute: LeaderboardRoute,
   PouleRoute: PouleRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
