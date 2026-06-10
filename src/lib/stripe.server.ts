@@ -24,5 +24,20 @@ export function getAppUrl(request?: Request) {
     return `${url.protocol}//${url.host}`;
   }
 
+  try {
+    // Available inside createServerFn handlers
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getRequestHeader } = require("@tanstack/react-start/server") as {
+      getRequestHeader: (name: string) => string | undefined;
+    };
+    const origin = getRequestHeader("origin") || getRequestHeader("referer");
+    if (origin) {
+      const url = new URL(origin);
+      return `${url.protocol}//${url.host}`;
+    }
+  } catch {
+    // ignore and fall through
+  }
+
   throw new Error("Missing APP_URL");
 }
