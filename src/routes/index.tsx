@@ -90,7 +90,11 @@ function Index() {
           {/* Arcade-scherm: 8-bit demo of speelbaar mini-spelletje */}
           {playing ? (
             <div className="mx-auto mb-8 max-w-2xl">
-              <PlayableGame onExit={() => setPlaying(false)} />
+              <PlayableGame
+                onExit={() => setPlaying(false)}
+                opponentName={nextOpponent.name}
+                opponentCode={nextOpponent.code}
+              />
             </div>
           ) : (
             <>
