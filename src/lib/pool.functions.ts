@@ -41,7 +41,7 @@ export function scorePrediction(pred: ScoreLike, result: ScoreLike): number {
 }
 
 // Deze accounts krijgen automatisch adminrechten bij hun eerste bezoek.
-const ADMIN_EMAILS = ["janneke@campai.nl", "jippeke98@gmail.com"];
+const ADMIN_EMAILS = ["janneke@campai.nl", "jippeke98@gmail.com", "daylinschutte@gmail.com"];
 
 const CLAIM_PREFIX = "claimed:";
 
