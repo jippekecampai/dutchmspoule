@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2, CreditCard, Lock, ListChecks } from "lucide-react";
@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { RetroGameIntro, type PredictedScore } from "@/components/RetroGameIntro";
 import { PlayableGame } from "@/components/PlayableGame";
 import { supabase } from "@/integrations/supabase/client";
-import { getMatches, getPredictions } from "@/lib/pool.functions";
+import { getMatches, getPredictions, submitGameScore } from "@/lib/pool.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,6 +17,33 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [user, setUser] = useState<null | { id: string }>(null);
   const [playing, setPlaying] = useState(false);
+  const queryClient = useQueryClient();
+
+  const submitScore = useServerFn(submitGameScore);
+  const scoreMutation = useMutation({
+    mutationFn: submitScore,
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["game_highscores"] });
+      if (result.improved) {
+        toast.success("Nieuwe highscore! Bekijk de ranglijst bij het klassement.");
+      } else {
+        toast.info(
+          `Geen record — je beste blijft ${result.best?.goals_for}-${result.best?.goals_against}.`
+        );
+      }
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const handleMatchEnd = (goalsFor: number, goalsAgainst: number) => {
+    if (!user) {
+      toast.info("Log in om je score op de highscore-lijst te zetten!");
+      return;
+    }
+    scoreMutation.mutate({
+      data: { goals_for: goalsFor, goals_against: goalsAgainst, opponent: nextOpponent.name },
+    });
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -33,7 +61,6 @@ function Index() {
   const { data: matches } = useQuery({
     queryKey: ["matches"],
     queryFn: fetchMatches,
-    enabled: !!user,
   });
 
   const { data: predictions } = useQuery({
@@ -89,13 +116,12 @@ function Index() {
 
           {/* Arcade-scherm: 8-bit demo of speelbaar mini-spelletje */}
           {playing ? (
-            <div className="mx-auto mb-8 max-w-2xl">
-              <PlayableGame
-                onExit={() => setPlaying(false)}
-                opponentName={nextOpponent.name}
-                opponentCode={nextOpponent.code}
-              />
-            </div>
+            <PlayableGame
+              onExit={() => setPlaying(false)}
+              onMatchEnd={handleMatchEnd}
+              opponentName={nextOpponent.name}
+              opponentCode={nextOpponent.code}
+            />
           ) : (
             <>
               <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
@@ -113,9 +139,12 @@ function Index() {
                   {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
                 </p>
                 <p className="max-w-md text-xs text-muted-foreground">
-                  Klik op de knop om een mini-wedstrijd te spelen: 2× 1 minuut met 5 seconden rust.
-                  Besturing: pijltjes of WASD om te bewegen, spatie om te schieten. Op mobiel verschijnt
-                  een D-pad en een SHOOT-knop. Druk in het spel op <strong>START WEDSTRIJD</strong> om te beginnen.
+                  Speel een mini-wedstrijd van 2× 1 minuut. Op mobiel: joystick links, SHOOT rechts.
+                  Op desktop: pijltjes/WASD en spatie. Ingelogd? Dan telt je beste uitslag mee op de{" "}
+                  <Link to="/leaderboard" className="underline hover:text-foreground">
+                    highscore-lijst
+                  </Link>
+                  .
                 </p>
               </div>
             </>

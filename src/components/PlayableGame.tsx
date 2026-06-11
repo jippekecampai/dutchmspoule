@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { X, RotateCcw, Play } from "lucide-react";
 
 /*
  * Speelbaar 8-bit mini-voetbalspelletje: 2 helften van 1 minuut met 5 seconden rust.
- * Besturing: pijltjes / WASD om te bewegen, spatie om te schieten.
- * Mobiel: virtuele D-pad + schiet-knop onder het canvas.
+ * Desktop: pijltjes / WASD om te bewegen, spatie om te schieten.
+ * Mobiel: fullscreen overlay met analoge joystick (links) en SHOOT-knop (rechts),
+ * zodat het veld en de besturing altijd samen in beeld zijn.
  */
 
 const W = 320;
@@ -88,17 +90,21 @@ function clamp(v: number, a: number, b: number) {
 
 export function PlayableGame({
   onExit,
+  onMatchEnd,
   opponentName = "Tegenstander",
   opponentCode = "CPU",
 }: {
   onExit: () => void;
+  onMatchEnd?: (goalsFor: number, goalsAgainst: number) => void;
   opponentName?: string;
   opponentCode?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
-  const [score, setScore] = useState<[number, number]>([0, 0]);
-  const [clock, setClock] = useState(HALF_SECONDS);
+  const [, setScore] = useState<[number, number]>([0, 0]);
+
+  const onMatchEndRef = useRef(onMatchEnd);
+  onMatchEndRef.current = onMatchEnd;
 
   // Mutable state via refs (game loop)
   const stateRef = useRef({
@@ -107,7 +113,8 @@ export function PlayableGame({
     ball: { x: W / 2, y: H / 2 } as Vec,
     ballV: { x: 0, y: 0 } as Vec,
     keys: new Set<string>(),
-    touch: { up: false, down: false, left: false, right: false, shoot: false },
+    // Analoge joystick-richting (-1..1) + schietknop
+    touch: { dx: 0, dy: 0, shoot: false },
     shootCool: 0,
     flashGoal: 0,
     frame: 0,
@@ -121,6 +128,15 @@ export function PlayableGame({
     stateRef.current.phase = phase;
   }, [phase]);
 
+  // Pagina-scroll vergrendelen zolang de game open staat
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
   // Keyboard
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -129,6 +145,7 @@ export function PlayableGame({
       if (k === " " || k === "arrowup" || k === "arrowdown" || k === "arrowleft" || k === "arrowright") {
         e.preventDefault();
       }
+      if (k === "escape") onExit();
     };
     const up = (e: KeyboardEvent) => stateRef.current.keys.delete(e.key.toLowerCase());
     window.addEventListener("keydown", down);
@@ -137,7 +154,7 @@ export function PlayableGame({
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, []);
+  }, [onExit]);
 
   // Game loop
   useEffect(() => {
@@ -184,9 +201,9 @@ export function PlayableGame({
             } else if (s.phase === "half2") {
               s.phase = "done";
               setPhase("done");
+              onMatchEndRef.current?.(s.home, s.away);
             }
           }
-          setClock(s.phaseTimer);
         }
       }
 
@@ -194,19 +211,22 @@ export function PlayableGame({
       s.frame = (s.frame + dt * 8) % 2;
 
       if (playing) {
-        // Input
+        // Input: toetsenbord + analoge joystick
         const speed = 70;
-        let dx = 0;
-        let dy = 0;
+        let dx = s.touch.dx;
+        let dy = s.touch.dy;
         const k = s.keys;
-        const t = s.touch;
-        if (k.has("arrowup") || k.has("w") || t.up) dy -= 1;
-        if (k.has("arrowdown") || k.has("s") || t.down) dy += 1;
-        if (k.has("arrowleft") || k.has("a") || t.left) dx -= 1;
-        if (k.has("arrowright") || k.has("d") || t.right) dx += 1;
-        const len = Math.hypot(dx, dy) || 1;
-        s.player.x = clamp(s.player.x + (dx / len) * speed * dt, 8, W - 8);
-        s.player.y = clamp(s.player.y + (dy / len) * speed * dt, 28, H - 14);
+        if (k.has("arrowup") || k.has("w")) dy -= 1;
+        if (k.has("arrowdown") || k.has("s")) dy += 1;
+        if (k.has("arrowleft") || k.has("a")) dx -= 1;
+        if (k.has("arrowright") || k.has("d")) dx += 1;
+        const len = Math.hypot(dx, dy);
+        if (len > 1) {
+          dx /= len;
+          dy /= len;
+        }
+        s.player.x = clamp(s.player.x + dx * speed * dt, 8, W - 8);
+        s.player.y = clamp(s.player.y + dy * speed * dt, 28, H - 14);
 
         // Bal naast speler -> meeslepen
         const dxb = s.ball.x - s.player.x;
@@ -215,7 +235,7 @@ export function PlayableGame({
         const hasBall = dist < 9 && Math.hypot(s.ballV.x, s.ballV.y) < 60;
         if (hasBall) {
           const ang = Math.atan2(dy, dx || 0.001);
-          const moving = dx !== 0 || dy !== 0;
+          const moving = Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01;
           if (moving) {
             s.ball.x = s.player.x + Math.cos(ang) * 7;
             s.ball.y = s.player.y - 2 + Math.sin(ang) * 7;
@@ -228,7 +248,7 @@ export function PlayableGame({
 
           // Schieten — richt op het doel waar NED naar toe speelt
           s.shootCool = Math.max(0, s.shootCool - dt);
-          if ((k.has(" ") || k.has("enter") || t.shoot) && s.shootCool === 0) {
+          if ((k.has(" ") || k.has("enter") || s.touch.shoot) && s.shootCool === 0) {
             const attackRight = s.phase === "half1";
             const tx = attackRight ? W - 6 : 6;
             const ty = H / 2 + (Math.random() - 0.5) * 28;
@@ -306,27 +326,29 @@ export function PlayableGame({
       text(ctx, `${String(mm).padStart(2, "0")}s`, W / 2, 14, 5, "#9aa4c8");
 
       if (s.phase === "idle") {
-        px(ctx, 0, 60, W, 60, "rgba(6,9,20,0.85)");
-        text(ctx, `NED vs ${opponentName.toUpperCase()}`, W / 2, 70, 8, ORANJE);
-        text(ctx, "2x 1 MIN  -  PAUZE 5S", W / 2, 88, 6, "#ffffff");
-        text(ctx, "PIJLTJES + SPATIE", W / 2, 102, 5, "#9aa4c8");
+        px(ctx, 0, 56, W, 70, "rgba(6,9,20,0.85)");
+        text(ctx, `NED vs ${opponentName.toUpperCase()}`, W / 2, 64, 8, ORANJE);
+        text(ctx, "2x 1 MIN  -  PAUZE 5S", W / 2, 82, 6, "#ffffff");
+        text(ctx, "TIK OP HET VELD OM TE STARTEN", W / 2, 96, 5, "#ffd23c");
+        text(ctx, "PIJLTJES + SPATIE OF JOYSTICK", W / 2, 108, 5, "#9aa4c8");
       } else if (s.phase === "break") {
         px(ctx, 0, 66, W, 48, "rgba(6,9,20,0.9)");
         text(ctx, "RUST  -  WISSEL VAN HELFT", W / 2, 74, 6, ORANJE);
         text(ctx, `2E HELFT IN ${s.phaseTimer}S`, W / 2, 92, 6, "#ffffff");
         text(ctx, "NU AANVALLEN NAAR LINKS", W / 2, 104, 5, "#9aa4c8");
       } else if (s.phase === "done") {
-        px(ctx, 0, 60, W, 60, "rgba(6,9,20,0.9)");
-        text(ctx, "EINDE", W / 2, 68, 10, ORANJE);
-        text(ctx, `${s.home} - ${s.away}`, W / 2, 88, 14, "#ffd23c");
+        px(ctx, 0, 52, W, 76, "rgba(6,9,20,0.9)");
+        text(ctx, "EINDE", W / 2, 60, 10, ORANJE);
+        text(ctx, `${s.home} - ${s.away}`, W / 2, 80, 14, "#ffd23c");
         text(
           ctx,
           s.home > s.away ? "GEWONNEN!" : s.home === s.away ? "GELIJKSPEL" : "VERLOREN",
           W / 2,
-          108,
+          100,
           6,
           "#ffffff"
         );
+        text(ctx, "TIK OP HET VELD VOOR REVANCHE", W / 2, 114, 5, "#9aa4c8");
       }
 
       if (s.flashGoal > 0) {
@@ -338,7 +360,7 @@ export function PlayableGame({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [opponentCode, opponentName]);
 
   const start = () => {
     const s = stateRef.current;
@@ -346,7 +368,6 @@ export function PlayableGame({
     s.away = 0;
     setScore([0, 0]);
     s.phaseTimer = HALF_SECONDS;
-    setClock(HALF_SECONDS);
     s.phase = "half1";
     setPhase("half1");
     s.ball = { x: W / 2, y: H / 2 };
@@ -355,90 +376,135 @@ export function PlayableGame({
     s.opponent = { x: W / 2 + 24, y: H / 2 };
   };
 
-  const setTouch = (key: keyof typeof stateRef.current.touch, v: boolean) => {
-    stateRef.current.touch[key] = v;
+  // ---- Virtuele joystick ----
+  const joyState = useRef<{ id: number | null; cx: number; cy: number }>({ id: null, cx: 0, cy: 0 });
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const JOY_RADIUS = 40;
+
+  const updateJoy = (clientX: number, clientY: number) => {
+    const j = joyState.current;
+    let dx = (clientX - j.cx) / JOY_RADIUS;
+    let dy = (clientY - j.cy) / JOY_RADIUS;
+    const len = Math.hypot(dx, dy);
+    if (len > 1) {
+      dx /= len;
+      dy /= len;
+    }
+    stateRef.current.touch.dx = Math.abs(dx) > 0.18 ? dx : 0;
+    stateRef.current.touch.dy = Math.abs(dy) > 0.18 ? dy : 0;
+    setKnob({ x: dx * JOY_RADIUS, y: dy * JOY_RADIUS });
   };
 
-  const padBtn = (label: string, key: keyof typeof stateRef.current.touch) => (
-    <button
-      type="button"
-      aria-label={label}
-      className="pixel-btn flex h-12 w-12 select-none items-center justify-center bg-navy-light text-foreground active:bg-oranje active:text-primary-foreground"
-      onPointerDown={(e) => {
-        e.preventDefault();
-        setTouch(key, true);
-      }}
-      onPointerUp={() => setTouch(key, false)}
-      onPointerLeave={() => setTouch(key, false)}
-      onPointerCancel={() => setTouch(key, false)}
-    >
-      {label}
-    </button>
-  );
+  const releaseJoy = () => {
+    joyState.current.id = null;
+    stateRef.current.touch.dx = 0;
+    stateRef.current.touch.dy = 0;
+    setKnob({ x: 0, y: 0 });
+  };
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
-        <canvas
-          ref={canvasRef}
-          width={W}
-          height={H}
-          className="block aspect-video w-full"
-          style={{ imageRendering: "pixelated" }}
-        />
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-        {(phase === "idle" || phase === "done") && (
+    <div
+      className="fixed inset-0 z-[100] flex flex-col bg-[#0b1020]"
+      style={{ touchAction: "none" }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {/* Topbalk */}
+      <div className="flex items-center justify-between gap-2 border-b-2 border-oranje/60 bg-navy px-3 py-2">
+        <span className="pixel-heading truncate text-[0.55rem] text-oranje sm:text-[0.65rem]">
+          NED vs {opponentCode.slice(0, 3).toUpperCase()} · 8-BIT CUP
+        </span>
+        <div className="flex items-center gap-2">
+          {(phase === "idle" || phase === "done") && (
+            <button
+              type="button"
+              onClick={start}
+              className="pixel-btn flex items-center gap-1.5 bg-oranje px-3 py-1.5 text-primary-foreground"
+            >
+              {phase === "done" ? <RotateCcw className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+              {phase === "done" ? "OPNIEUW" : "START"}
+            </button>
+          )}
           <button
             type="button"
-            onClick={start}
-            className="pixel-btn bg-oranje px-4 py-2 text-primary-foreground hover:bg-oranje-dark"
+            onClick={onExit}
+            aria-label="Sluit het spelletje"
+            className="pixel-btn flex items-center gap-1.5 bg-navy-light px-3 py-1.5 text-foreground"
           >
-            {phase === "done" ? "OPNIEUW SPELEN" : "START WEDSTRIJD"}
+            <X className="h-3.5 w-3.5" />
+            STOP
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onExit}
-          className="pixel-btn bg-navy-light px-4 py-2 text-foreground hover:bg-secondary"
-        >
-          STOP
-        </button>
+        </div>
       </div>
 
-      {/* Mobiele besturing */}
-      <div className="mt-4 flex items-center justify-between gap-4 sm:hidden">
-        <div className="grid grid-cols-3 grid-rows-3 gap-1">
-          <div />
-          {padBtn("▲", "up")}
-          <div />
-          {padBtn("◀", "left")}
-          <div />
-          {padBtn("▶", "right")}
-          <div />
-          {padBtn("▼", "down")}
-          <div />
+      {/* Speelveld — schaalt naar wat er past binnen het scherm */}
+      <div className="flex min-h-0 flex-1 items-center justify-center p-2">
+        <div className="border-4 border-oranje bg-black p-1">
+          <canvas
+            ref={canvasRef}
+            width={W}
+            height={H}
+            onPointerDown={() => {
+              if (phase === "idle" || phase === "done") start();
+            }}
+            className="block"
+            style={{
+              imageRendering: "pixelated",
+              aspectRatio: "16/9",
+              width: "min(92vw, calc((100dvh - 220px) * 16 / 9), 56rem)",
+            }}
+          />
         </div>
+      </div>
+
+      {/* Touch-besturing: joystick links, SHOOT rechts — altijd in beeld */}
+      <div className="flex items-end justify-between px-6 pb-6 pt-1 sm:px-12">
+        <div
+          className="relative flex h-28 w-28 touch-none select-none items-center justify-center rounded-full border-[3px] border-oranje/60 bg-navy-light/60"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.currentTarget.setPointerCapture(e.pointerId);
+            const rect = e.currentTarget.getBoundingClientRect();
+            joyState.current = {
+              id: e.pointerId,
+              cx: rect.left + rect.width / 2,
+              cy: rect.top + rect.height / 2,
+            };
+            updateJoy(e.clientX, e.clientY);
+          }}
+          onPointerMove={(e) => {
+            if (joyState.current.id === e.pointerId) updateJoy(e.clientX, e.clientY);
+          }}
+          onPointerUp={releaseJoy}
+          onPointerCancel={releaseJoy}
+        >
+          <div
+            className="pointer-events-none h-12 w-12 rounded-full border-2 border-oranje bg-oranje/80 shadow-[2px_2px_0_0_rgb(0_0_0/0.5)]"
+            style={{ transform: `translate(${knob.x}px, ${knob.y}px)` }}
+          />
+          <span className="pixel-heading pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 text-[0.45rem] text-muted-foreground">
+            BEWEEG
+          </span>
+        </div>
+
         <button
           type="button"
           aria-label="Schieten"
-          className="pixel-btn flex h-16 w-16 items-center justify-center bg-oranje text-primary-foreground active:bg-oranje-dark"
+          className="pixel-heading flex h-24 w-24 touch-none select-none items-center justify-center rounded-full border-[3px] border-oranje bg-oranje text-[0.6rem] text-primary-foreground shadow-[4px_4px_0_0_rgb(0_0_0/0.5)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
           onPointerDown={(e) => {
             e.preventDefault();
-            setTouch("shoot", true);
+            e.currentTarget.setPointerCapture(e.pointerId);
+            stateRef.current.touch.shoot = true;
           }}
-          onPointerUp={() => setTouch("shoot", false)}
-          onPointerLeave={() => setTouch("shoot", false)}
-          onPointerCancel={() => setTouch("shoot", false)}
+          onPointerUp={() => {
+            stateRef.current.touch.shoot = false;
+          }}
+          onPointerCancel={() => {
+            stateRef.current.touch.shoot = false;
+          }}
         >
           SHOOT
         </button>
       </div>
-
-      <p className="pixel-heading mt-4 text-center text-[0.55rem] text-muted-foreground">
-        Score: {score[0]} - {score[1]} • Tijd: {clock}s • {phase.toUpperCase()}
-      </p>
     </div>
   );
 }

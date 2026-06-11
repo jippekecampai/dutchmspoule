@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getLeaderboard, getMatches, getMatchResults } from "@/lib/pool.functions";
-import { Trophy, Medal, Crown, Target } from "lucide-react";
+import { getLeaderboard, getMatches, getMatchResults, getGameHighscores } from "@/lib/pool.functions";
+import { Trophy, Medal, Crown, Target, Gamepad2 } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
@@ -26,6 +26,12 @@ function LeaderboardPage() {
   const { data: results } = useQuery({
     queryKey: ["match_results"],
     queryFn: fetchResults,
+  });
+
+  const fetchHighscores = useServerFn(getGameHighscores);
+  const { data: highscores } = useQuery({
+    queryKey: ["game_highscores"],
+    queryFn: fetchHighscores,
   });
 
   const matchesMap = new Map((matches || []).map((m) => [m.id, m]));
@@ -142,6 +148,67 @@ function LeaderboardPage() {
           })}
         </div>
       )}
+
+      {/* Arcade hi-scores van het mini-spelletje */}
+      <div className="pixel-card mt-10 overflow-hidden p-0">
+        <div className="pattern-1988 px-5 py-4">
+          <h2 className="pixel-heading flex items-center gap-2 text-xs text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+            <Gamepad2 className="h-5 w-5" />
+            Arcade Hi-Scores
+          </h2>
+        </div>
+        <div className="p-5">
+          {(highscores || []).length === 0 ? (
+            <p className="pixel-heading text-center text-[0.6rem] leading-relaxed text-muted-foreground">
+              Nog geen hi-scores.
+              <br />
+              Wees de eerste!
+            </p>
+          ) : (
+            <ul className="divide-y divide-oranje/20">
+              {(highscores || []).map((entry, index) => {
+                const rank = index + 1;
+                return (
+                  <li key={entry.user_id} className="flex items-center gap-4 py-2.5">
+                    <span
+                      className={`pixel-heading w-8 text-center text-xs ${
+                        rank === 1 ? "text-gold" : rank <= 3 ? "text-oranje" : "text-muted-foreground"
+                      }`}
+                    >
+                      {rank}
+                    </span>
+                    <span className="flex-1 truncate font-bold text-foreground">
+                      {entry.display_name}
+                    </span>
+                    {entry.opponent && (
+                      <span className="hidden text-sm text-muted-foreground sm:inline">
+                        vs {entry.opponent}
+                      </span>
+                    )}
+                    <span className="pixel-heading text-xs text-foreground">
+                      {entry.goals_for}-{entry.goals_against}
+                    </span>
+                    <span
+                      className={`pixel-heading w-12 text-right text-xs ${
+                        entry.saldo > 0 ? "text-oranje" : "text-muted-foreground"
+                      }`}
+                    >
+                      {entry.saldo > 0 ? `+${entry.saldo}` : entry.saldo}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Versla de nummer 1 in het{" "}
+            <Link to="/" className="underline hover:text-foreground">
+              8-bit spelletje op de homepage
+            </Link>
+            . Je beste doelsaldo telt.
+          </p>
+        </div>
+      </div>
 
       {/* Match results overview */}
       {(results || []).length > 0 && (
