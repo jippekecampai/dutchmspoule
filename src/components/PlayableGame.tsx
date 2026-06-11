@@ -86,7 +86,15 @@ function clamp(v: number, a: number, b: number) {
   return Math.min(b, Math.max(a, v));
 }
 
-export function PlayableGame({ onExit }: { onExit: () => void }) {
+export function PlayableGame({
+  onExit,
+  opponentName = "Tegenstander",
+  opponentCode = "CPU",
+}: {
+  onExit: () => void;
+  opponentName?: string;
+  opponentCode?: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [score, setScore] = useState<[number, number]>([0, 0]);
