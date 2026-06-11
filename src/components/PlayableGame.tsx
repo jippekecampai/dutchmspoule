@@ -247,13 +247,12 @@ export function PlayableGame({
         const ody = s.ball.y - s.opponent.y - 2;
         const od = Math.hypot(odx, ody) || 1;
         const ospeed = 48;
-        const oppAttackRight = s.phase !== "half1"; // tegenstander valt aan in tegengestelde richting
-        void oppAttackRight;
         s.opponent.x = clamp(s.opponent.x + (odx / od) * ospeed * dt, 8, W - 8);
         s.opponent.y = clamp(s.opponent.y + (ody / od) * ospeed * dt, 28, H - 14);
+        const attackRight = s.phase === "half1";
         if (od < 8 && hasBall) {
-          // Tackle: bal wegschieten naar links
-          s.ballV.x = -140;
+          // Tackle: bal wegschieten richting de helft van NED
+          s.ballV.x = attackRight ? -140 : 140;
           s.ballV.y = (Math.random() - 0.5) * 80;
         }
 
@@ -272,18 +271,18 @@ export function PlayableGame({
           s.ballV.y *= -0.6;
         }
 
-        // Doelpunten
+        // Doelpunten — NED valt aan naar rechts in helft 1, naar links in helft 2
         const inGoalY = s.ball.y > H / 2 - 14 && s.ball.y < H / 2 + 22;
-        if (s.ball.x > W - 6 && inGoalY) {
-          s.home += 1;
+        const rightGoal = s.ball.x > W - 6 && inGoalY;
+        const leftGoal = s.ball.x < 6 && inGoalY;
+        if (rightGoal || leftGoal) {
+          const nedScored = attackRight ? rightGoal : leftGoal;
+          if (nedScored) s.home += 1;
+          else s.away += 1;
           setScore([s.home, s.away]);
           s.flashGoal = 1.0;
-          resetKickoff(false);
-        } else if (s.ball.x < 6 && inGoalY) {
-          s.away += 1;
-          setScore([s.home, s.away]);
-          s.flashGoal = 1.0;
-          resetKickoff(true);
+          // Aftrap: NED start altijd op eigen helft
+          resetKickoff(attackRight);
         } else if (s.ball.x < 4) {
           s.ball.x = 4;
           s.ballV.x *= -0.5;
