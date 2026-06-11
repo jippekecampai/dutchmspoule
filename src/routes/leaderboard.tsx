@@ -85,7 +85,7 @@ function LeaderboardPage() {
             </div>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            Inleg: €10 per persoon. Betaal via de QR-code op de poulepagina.
+            Inleg: €15 per persoon. Betaal via de QR-code op de poulepagina.
           </p>
         </div>
       </div>
