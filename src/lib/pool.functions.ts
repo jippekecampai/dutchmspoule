@@ -24,6 +24,43 @@ const ADMIN_EMAILS = ["janneke@campai.nl", "jippeke98@gmail.com"];
 
 const CLAIM_PREFIX = "claimed:";
 
+type AuthUserLike = {
+  id: string;
+  email?: string | null;
+  user_metadata?: Record<string, unknown>;
+};
+
+function deriveDisplayName(user: AuthUserLike) {
+  const meta = user.user_metadata || {};
+  return (
+    (meta.display_name as string) ||
+    (meta.full_name as string) ||
+    (meta.name as string) ||
+    user.email?.split("@")[0] ||
+    "Speler"
+  );
+}
+
+// OAuth-registraties (Google/Apple) krijgen geen profielrij via een trigger;
+// maak er hier alsnog één aan zodat admin-overzicht en klassement ze zien.
+async function ensureProfile(userId: string) {
+  const { data: existing, error: existingErr } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (existingErr) throw new Error(existingErr.message);
+  if (existing) return;
+
+  const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (userErr) throw new Error(userErr.message);
+
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .upsert({ id: userId, display_name: deriveDisplayName(user.user) }, { onConflict: "id" });
+  if (error) throw new Error(error.message);
+}
+
 export const getMatches = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
     .from("matches")
@@ -116,6 +153,8 @@ export const claimPayment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existingErr) throw new Error(existingErr.message);
     if (existing?.status === "paid") return { success: true, alreadyPaid: true };
+
+    await ensureProfile(context.userId);
 
     const { error } = await supabaseAdmin
       .from("participant_payments")
@@ -215,6 +254,8 @@ export const savePrediction = createServerFn({ method: "POST" })
       throw new Error("Voorspellingen sluiten 10 minuten voor aanvang van de wedstrijd.");
     }
 
+    await ensureProfile(context.userId);
+
     const { error } = await context.supabase
       .from("predictions")
       .upsert({
@@ -265,11 +306,34 @@ export const getParticipantPayments = createServerFn({ method: "GET" })
     if (roleErr) throw new Error(roleErr.message);
     if (!isAdmin) throw new Error("Alleen admins kunnen deelnemers bekijken.");
 
+    // Alle accounts uit auth zijn de bron van waarheid: gebruikers die via
+    // Google/Apple binnenkwamen hebben geen profielrij, maar tellen wel mee.
+    const allUsers: AuthUserLike[] = [];
+    let page = 1;
+    for (;;) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      if (error) throw new Error(error.message);
+      allUsers.push(...data.users);
+      if (data.users.length < 200) break;
+      page++;
+    }
+
     const { data: profiles, error: profilesErr } = await supabaseAdmin
       .from("profiles")
-      .select("id, display_name")
-      .order("display_name");
+      .select("id, display_name");
     if (profilesErr) throw new Error(profilesErr.message);
+    const profileMap = new Map((profiles || []).map((p) => [p.id, p.display_name]));
+
+    // Ontbrekende profielen meteen aanvullen, zodat ook het klassement ze kent.
+    const missing = allUsers.filter((u) => !profileMap.has(u.id));
+    if (missing.length > 0) {
+      const rows = missing.map((u) => ({ id: u.id, display_name: deriveDisplayName(u) }));
+      const { error: healErr } = await supabaseAdmin
+        .from("profiles")
+        .upsert(rows, { onConflict: "id" });
+      if (healErr) throw new Error(healErr.message);
+      for (const row of rows) profileMap.set(row.id, row.display_name);
+    }
 
     const { data: payments, error: paymentsErr } = await supabaseAdmin
       .from("participant_payments")
@@ -278,14 +342,15 @@ export const getParticipantPayments = createServerFn({ method: "GET" })
 
     const paymentMap = new Map((payments || []).map((payment) => [payment.user_id, payment]));
 
-    return (profiles || [])
-      .map((profile) => {
-        const payment = paymentMap.get(profile.id);
+    return allUsers
+      .map((user) => {
+        const payment = paymentMap.get(user.id);
         const ref = payment?.provider_reference || "";
         const hasClaimed = payment?.status !== "paid" && ref.startsWith(CLAIM_PREFIX);
         return {
-          user_id: profile.id,
-          display_name: profile.display_name,
+          user_id: user.id,
+          display_name: profileMap.get(user.id) || deriveDisplayName(user),
+          email: user.email || null,
           status: payment?.status || "pending",
           has_claimed: hasClaimed,
           claimed_at: hasClaimed ? ref.slice(CLAIM_PREFIX.length) : null,
@@ -295,8 +360,12 @@ export const getParticipantPayments = createServerFn({ method: "GET" })
           paid_at: payment?.paid_at || null,
         };
       })
-      // Gemelde betalingen bovenaan, zodat de admin ze direct ziet.
-      .sort((a, b) => Number(b.has_claimed) - Number(a.has_claimed));
+      // Gemelde betalingen bovenaan, daarna alfabetisch.
+      .sort(
+        (a, b) =>
+          Number(b.has_claimed) - Number(a.has_claimed) ||
+          a.display_name.localeCompare(b.display_name)
+      );
   });
 
 export const saveMatchResult = createServerFn({ method: "POST" })
