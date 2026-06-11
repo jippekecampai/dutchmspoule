@@ -461,10 +461,17 @@
   transform: none;
 }
 
+/* Windows 95-knoppen: grijs vlak met 3D-rand die indrukt bij klikken */
 [data-theme="roland"] .pixel-btn {
-  border: 1px solid #b0b0b0;
-  border-radius: 4px;
-  box-shadow: none;
+  border: 2px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  border-radius: 0 !important;
+  background-color: #c0c0c0 !important;
+  background-image: none !important;
+  color: #111111 !important;
+  box-shadow:
+    inset 1px 1px 0 #dfdfdf,
+    inset -1px -1px 0 #808080;
   text-transform: none;
   letter-spacing: 0;
   font-size: 0.9rem;
@@ -473,12 +480,23 @@
 [data-theme="roland"] .pixel-btn:hover {
   filter: none;
   transform: none;
-  box-shadow: none;
+  background-color: #c8c8c8 !important;
+  box-shadow:
+    inset 1px 1px 0 #dfdfdf,
+    inset -1px -1px 0 #808080;
 }
 
 [data-theme="roland"] .pixel-btn:active {
-  transform: none;
-  box-shadow: none;
+  border-color: #404040 #ffffff #ffffff #404040;
+  box-shadow:
+    inset 1px 1px 0 #808080,
+    inset -1px -1px 0 #dfdfdf;
+  transform: translate(1px, 1px);
+}
+
+[data-theme="roland"] .pixel-btn:disabled {
+  color: #808080 !important;
+  text-shadow: 1px 1px 0 #ffffff;
 }
 
 /* Saaie grijze balk i.p.v. het oranje zigzagpatroon, met leesbare donkere tekst */
