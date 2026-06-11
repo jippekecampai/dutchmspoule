@@ -1,16 +1,48 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment, getFeedback, setFeedbackStatus, setParticipantName } from "@/lib/pool.functions";
-import { Save, Lock, CreditCard, CheckCircle2, XCircle, HandCoins, MessageSquare, Undo2, Pencil } from "lucide-react";
+import {
+  getMatches,
+  getMatchResults,
+  saveMatchResult,
+  checkIsAdmin,
+  getParticipantPayments,
+  markParticipantPayment,
+  getFeedback,
+  setFeedbackStatus,
+  setParticipantName,
+  getRevealedPredictions,
+  scorePrediction,
+} from "@/lib/pool.functions";
+import {
+  Save,
+  Lock,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  HandCoins,
+  MessageSquare,
+  Undo2,
+  Pencil,
+  Trophy,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
+
+type RevealedPrediction = {
+  match_id: string;
+  home_score: number;
+  away_score: number;
+  user_id: string;
+  profiles: { display_name: string } | null;
+};
 
 function AdminPage() {
   const queryClient = useQueryClient();
@@ -20,6 +52,7 @@ function AdminPage() {
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchParticipants = useServerFn(getParticipantPayments);
   const markPayment = useServerFn(markParticipantPayment);
+  const fetchRevealedPredictions = useServerFn(getRevealedPredictions);
 
   const { data: adminCheck, isLoading: adminLoading } = useQuery({
     queryKey: ["is_admin"],
@@ -43,6 +76,12 @@ function AdminPage() {
     enabled: !!adminCheck?.isAdmin,
   });
 
+  const { data: revealedPredictions } = useQuery({
+    queryKey: ["revealed_predictions"],
+    queryFn: fetchRevealedPredictions,
+    enabled: !!adminCheck?.isAdmin,
+  });
+
   const fetchFeedback = useServerFn(getFeedback);
   const updateFeedback = useServerFn(setFeedbackStatus);
   const { data: feedback } = useQuery({
@@ -57,6 +96,7 @@ function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participant_payments"] });
       queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["revealed_predictions"] });
       queryClient.invalidateQueries({ queryKey: ["feedback"] });
       toast.success("Naam bijgewerkt");
     },
@@ -76,13 +116,45 @@ function AdminPage() {
   const doneFeedback = (feedback || []).filter((f) => f.status === "done");
 
   const resultsMap = new Map((results || []).map((r) => [r.match_id, r]));
+  const matchesMap = new Map((matches || []).map((m) => [m.id, m]));
+  const paidParticipants = (participants || []).filter((p) => p.status === "paid");
+
+  const standings = paidParticipants
+    .map((participant) => {
+      const preds = (revealedPredictions || []).filter(
+        (p: RevealedPrediction) => p.user_id === participant.user_id,
+      );
+      const points = preds.reduce((total: number, pred: RevealedPrediction) => {
+        const result = resultsMap.get(pred.match_id);
+        if (!result) return total;
+        return total + scorePrediction(pred, result);
+      }, 0);
+      return { ...participant, points, predictionCount: preds.length };
+    })
+    .sort((a, b) => b.points - a.points || a.display_name.localeCompare(b.display_name));
+
+  const playedMatches = (results || [])
+    .map((result) => {
+      const match = matchesMap.get(result.match_id);
+      if (!match) return null;
+      return { result, match };
+    })
+    .filter(Boolean) as {
+    result: { id: string; match_id: string; home_score: number; away_score: number };
+    match: { id: string; round: string; home_team: string; away_team: string };
+  }[];
+
+  const invalidateScoreData = () => {
+    queryClient.invalidateQueries({ queryKey: ["match_results"] });
+    queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+    queryClient.invalidateQueries({ queryKey: ["revealed_predictions"] });
+  };
 
   const saveMutation = useMutation({
     mutationFn: saveResult,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["match_results"] });
-      queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
-      toast.success("Uitslag opgeslagen!");
+      invalidateScoreData();
+      toast.success("Eindstand opgeslagen! Het klassement is bijgewerkt.");
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -92,6 +164,7 @@ function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participant_payments"] });
       queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["revealed_predictions"] });
       toast.success("Betaalstatus bijgewerkt");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -100,9 +173,9 @@ function AdminPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-8 text-center">
-        <h1 className="pixel-heading text-base text-foreground sm:text-xl">Admin — Uitslagen</h1>
+        <h1 className="pixel-heading text-base text-foreground sm:text-xl">Admin</h1>
         <p className="mt-3 text-lg text-muted-foreground">
-          Voer hier de uitslagen in na elke wedstrijd.
+          Beheer betalingen, vul eindstanden in en bekijk scores van betaalde deelnemers.
         </p>
       </div>
 
@@ -113,7 +186,8 @@ function AdminPage() {
           <Lock className="mx-auto mb-3 h-10 w-10 text-oranje" />
           <h2 className="pixel-heading mb-3 text-xs">Geen toegang</h2>
           <p className="text-muted-foreground">
-            Alleen admins kunnen uitslagen invoeren. Vraag de organisator om je admin-rechten te geven.
+            Alleen admins kunnen uitslagen invoeren. Vraag de organisator om je admin-rechten te
+            geven.
           </p>
         </div>
       ) : (
@@ -123,6 +197,11 @@ function AdminPage() {
               <Lock className="h-4 w-4 text-oranje" />
               <span>Je bent ingelogd als admin.</span>
             </div>
+            <p className="mt-2 text-sm">
+              Vul hieronder per wedstrijd de <strong className="text-foreground">eindstand</strong>{" "}
+              in zodra die bekend is. Daarna worden punten van betaalde deelnemers automatisch
+              berekend en zichtbaar in het klassement.
+            </p>
           </div>
 
           <div className="pixel-card mb-8 overflow-hidden p-0">
@@ -158,7 +237,9 @@ function AdminPage() {
                             }
                           />
                           {participant.email && (
-                            <div className="break-all text-sm text-muted-foreground">{participant.email}</div>
+                            <div className="break-all text-sm text-muted-foreground">
+                              {participant.email}
+                            </div>
                           )}
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             {isPaid ? (
@@ -171,8 +252,8 @@ function AdminPage() {
                             {isPaid
                               ? "Betaald"
                               : hasClaimed
-                              ? `Zegt betaald te hebben${participant.claimed_at ? ` (${new Date(participant.claimed_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })})` : ""} — bevestigen?`
-                              : "Nog niet betaald"}
+                                ? `Zegt betaald te hebben${participant.claimed_at ? ` (${new Date(participant.claimed_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })})` : ""} — bevestigen?`
+                                : "Nog niet betaald"}
                           </div>
                         </div>
                         <div className="flex gap-3">
@@ -224,7 +305,8 @@ function AdminPage() {
             <div className="p-5">
               {(feedback || []).length === 0 ? (
                 <p className="text-muted-foreground">
-                  Nog geen opmerkingen. Deelnemers kunnen ze insturen via de knop rechtsonder op de site.
+                  Nog geen opmerkingen. Deelnemers kunnen ze insturen via de knop rechtsonder op de
+                  site.
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -260,6 +342,118 @@ function AdminPage() {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="pixel-card mb-8 overflow-hidden p-0">
+            <div className="pattern-1988 px-5 py-3">
+              <h2 className="pixel-heading flex items-center gap-2 text-[0.65rem] text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+                <Trophy className="h-5 w-5" />
+                Scores betaalde deelnemers
+              </h2>
+            </div>
+            <div className="p-5">
+              {paidParticipants.length === 0 ? (
+                <p className="text-muted-foreground">
+                  Nog geen betaalde deelnemers. Markeer eerst deelnemers als betaald.
+                </p>
+              ) : playedMatches.length === 0 ? (
+                <p className="text-muted-foreground">
+                  Nog geen eindstanden ingevuld. Vul hieronder een eindstand in om scores te zien.
+                </p>
+              ) : (
+                <>
+                  <div className="mb-6 space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <Users className="h-4 w-4 text-oranje" />
+                      Totaalstand
+                    </div>
+                    {standings.map((entry, index) => (
+                      <div
+                        key={entry.user_id}
+                        className="flex items-center justify-between border-2 border-oranje/30 px-4 py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="pixel-heading flex h-8 w-8 items-center justify-center border-2 border-oranje/40 text-xs">
+                            {index + 1}
+                          </span>
+                          <span className="font-bold">{entry.display_name}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="pixel-heading text-sm text-oranje">{entry.points}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {entry.predictionCount} voorspelling
+                            {entry.predictionCount !== 1 ? "en" : ""}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    {playedMatches.map(({ result, match }) => {
+                      const matchPreds = (revealedPredictions || []).filter(
+                        (p: RevealedPrediction) => p.match_id === match.id,
+                      );
+                      return (
+                        <div key={result.id} className="border-2 border-oranje/30 p-4">
+                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <div className="text-xs text-muted-foreground">{match.round}</div>
+                              <div className="font-bold">
+                                {match.home_team} {result.home_score} – {result.away_score}{" "}
+                                {match.away_team}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">Eindstand ingevuld</div>
+                          </div>
+                          {matchPreds.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              Geen voorspellingen van betaalde deelnemers voor deze wedstrijd.
+                            </p>
+                          ) : (
+                            <div className="space-y-2">
+                              {matchPreds.map((pred: RevealedPrediction) => {
+                                const pts = scorePrediction(pred, result);
+                                return (
+                                  <div
+                                    key={`${pred.user_id}-${pred.match_id}`}
+                                    className="flex items-center justify-between border border-oranje/20 bg-muted/40 px-3 py-2 text-sm"
+                                  >
+                                    <span className="font-medium">
+                                      {pred.profiles?.display_name || "Onbekend"}
+                                    </span>
+                                    <span className="flex items-center gap-3">
+                                      <span className="font-mono">
+                                        {pred.home_score} – {pred.away_score}
+                                      </span>
+                                      <span
+                                        className={`min-w-[4.5rem] text-right font-semibold ${
+                                          pts > 0 ? "text-emerald-500" : "text-muted-foreground"
+                                        }`}
+                                      >
+                                        {pts} pt
+                                      </span>
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="pixel-heading text-sm text-foreground">Eindstanden invoeren</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Voer na elke wedstrijd de uiteindelijke score in. Bestaande eindstanden worden
+              automatisch ingevuld.
+            </p>
           </div>
 
           <div className="space-y-6">
@@ -416,12 +610,13 @@ function ResultCard({
   onSave: (home: number, away: number) => void;
   isSaving: boolean;
 }) {
-  const [homeScore, setHomeScore] = useState<number | "">(
-    existing ? existing.home_score : ""
-  );
-  const [awayScore, setAwayScore] = useState<number | "">(
-    existing ? existing.away_score : ""
-  );
+  const [homeScore, setHomeScore] = useState<number | "">("");
+  const [awayScore, setAwayScore] = useState<number | "">("");
+
+  useEffect(() => {
+    setHomeScore(existing ? existing.home_score : "");
+    setAwayScore(existing ? existing.away_score : "");
+  }, [existing?.home_score, existing?.away_score, existing?.match_id]);
 
   const matchDate = new Date(match.match_date);
   const formattedDate = matchDate.toLocaleDateString("nl-NL", {
@@ -474,7 +669,7 @@ function ResultCard({
           disabled={isSaving || homeScore === "" || awayScore === ""}
         >
           <Save className="mr-2 h-4 w-4" />
-          {existing ? "Uitslag wijzigen" : "Uitslag opslaan"}
+          {existing ? "Eindstand wijzigen" : "Eindstand opslaan"}
         </Button>
       </div>
     </div>

@@ -1,7 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getAppUrl, getStripeClient, ENTRY_FEE_CENTS, ENTRY_FEE_CURRENCY } from "@/lib/stripe.server";
+import {
+  getAppUrl,
+  getStripeClient,
+  ENTRY_FEE_CENTS,
+  ENTRY_FEE_CURRENCY,
+} from "@/lib/stripe.server";
 import { getServerConfig } from "@/lib/config.server";
 import { z } from "zod";
 
@@ -78,10 +83,7 @@ async function ensureProfile(userId: string) {
 }
 
 export const getMatches = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
-    .from("matches")
-    .select("*")
-    .order("sort_order");
+  const { data, error } = await supabaseAdmin.from("matches").select("*").order("sort_order");
   if (error) throw new Error(error.message);
   return data || [];
 });
@@ -99,36 +101,42 @@ export const getPredictions = createServerFn({ method: "GET" })
 
 // Only returns predictions for matches that already have a final result,
 // and only for users whose payment has been approved by an admin.
-export const getRevealedPredictions = createServerFn({ method: "GET" }).handler(async () => {
-  const { data: results, error: resErr } = await supabaseAdmin
-    .from("match_results")
-    .select("match_id");
-  if (resErr) throw new Error(resErr.message);
-  const revealedIds = (results || []).map((r) => r.match_id);
-  if (revealedIds.length === 0) return [];
+export const getRevealedPredictions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Alleen admins kunnen betaalde voorspellingen bekijken.");
 
-  const { data: paidRows, error: paidErr } = await supabaseAdmin
-    .from("participant_payments")
-    .select("user_id")
-    .eq("status", "paid");
-  if (paidErr) throw new Error(paidErr.message);
-  const paidUserIds = (paidRows || []).map((p) => p.user_id);
-  if (paidUserIds.length === 0) return [];
+    const { data: results, error: resErr } = await supabaseAdmin
+      .from("match_results")
+      .select("match_id");
+    if (resErr) throw new Error(resErr.message);
+    const revealedIds = (results || []).map((r) => r.match_id);
+    if (revealedIds.length === 0) return [];
 
-  const { data, error } = await supabaseAdmin
-    .from("predictions")
-    .select("match_id, home_score, away_score, user_id, profiles:user_id(display_name)")
-    .in("match_id", revealedIds)
-    .in("user_id", paidUserIds);
-  if (error) throw new Error(error.message);
-  return data || [];
-});
+    const { data: paidRows, error: paidErr } = await supabaseAdmin
+      .from("participant_payments")
+      .select("user_id")
+      .eq("status", "paid");
+    if (paidErr) throw new Error(paidErr.message);
+    const paidUserIds = (paidRows || []).map((p) => p.user_id);
+    if (paidUserIds.length === 0) return [];
 
+    const { data, error } = await supabaseAdmin
+      .from("predictions")
+      .select("match_id, home_score, away_score, user_id, profiles:user_id(display_name)")
+      .in("match_id", revealedIds)
+      .in("user_id", paidUserIds);
+    if (error) throw new Error(error.message);
+    return data || [];
+  });
 
 export const getMatchResults = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
-    .from("match_results")
-    .select("*");
+  const { data, error } = await supabaseAdmin.from("match_results").select("*");
   if (error) throw new Error(error.message);
   return data || [];
 });
@@ -172,9 +180,8 @@ export const claimPayment = createServerFn({ method: "POST" })
 
     await ensureProfile(context.userId);
 
-    const { error } = await supabaseAdmin
-      .from("participant_payments")
-      .upsert({
+    const { error } = await supabaseAdmin.from("participant_payments").upsert(
+      {
         user_id: context.userId,
         status: "pending",
         amount_cents: ENTRY_FEE_CENTS,
@@ -182,7 +189,9 @@ export const claimPayment = createServerFn({ method: "POST" })
         provider: "bunq",
         provider_reference: `${CLAIM_PREFIX}${new Date().toISOString()}`,
         updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
+      },
+      { onConflict: "user_id" },
+    );
     if (error) throw new Error(error.message);
     return { success: true, alreadyPaid: false };
   });
@@ -200,7 +209,9 @@ export const createEntryFeeCheckout = createServerFn({ method: "POST" })
       return { url: "/poule" };
     }
 
-    const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(
+      context.userId,
+    );
     if (userErr) throw new Error(userErr.message);
 
     const stripe = getStripeClient();
@@ -238,9 +249,8 @@ export const createEntryFeeCheckout = createServerFn({ method: "POST" })
 
     if (!session.url) throw new Error("Stripe Checkout session heeft geen URL teruggegeven.");
 
-    await supabaseAdmin
-      .from("participant_payments")
-      .upsert({
+    await supabaseAdmin.from("participant_payments").upsert(
+      {
         user_id: context.userId,
         status: "pending",
         amount_cents: ENTRY_FEE_CENTS,
@@ -248,7 +258,9 @@ export const createEntryFeeCheckout = createServerFn({ method: "POST" })
         provider: "stripe",
         provider_reference: session.id,
         updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
+      },
+      { onConflict: "user_id" },
+    );
 
     return { url: session.url };
   });
@@ -272,18 +284,18 @@ export const savePrediction = createServerFn({ method: "POST" })
 
     await ensureProfile(context.userId);
 
-    const { error } = await context.supabase
-      .from("predictions")
-      .upsert({
+    const { error } = await context.supabase.from("predictions").upsert(
+      {
         user_id: context.userId,
         match_id: data.match_id,
         home_score: data.home_score,
         away_score: data.away_score,
-      }, { onConflict: "user_id,match_id" });
+      },
+      { onConflict: "user_id,match_id" },
+    );
     if (error) throw new Error(error.message);
     return { success: true };
   });
-
 
 export const markParticipantPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -296,9 +308,8 @@ export const markParticipantPayment = createServerFn({ method: "POST" })
     if (roleErr) throw new Error(roleErr.message);
     if (!isAdmin) throw new Error("Alleen admins kunnen betaalstatussen aanpassen.");
 
-    const { error } = await supabaseAdmin
-      .from("participant_payments")
-      .upsert({
+    const { error } = await supabaseAdmin.from("participant_payments").upsert(
+      {
         user_id: data.user_id,
         status: data.status,
         amount_cents: ENTRY_FEE_CENTS,
@@ -307,7 +318,9 @@ export const markParticipantPayment = createServerFn({ method: "POST" })
         provider_reference: data.provider_reference || null,
         paid_at: data.status === "paid" ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
+      },
+      { onConflict: "user_id" },
+    );
     if (error) throw new Error(error.message);
     return { success: true };
   });
@@ -358,30 +371,32 @@ export const getParticipantPayments = createServerFn({ method: "GET" })
 
     const paymentMap = new Map((payments || []).map((payment) => [payment.user_id, payment]));
 
-    return allUsers
-      .map((user) => {
-        const payment = paymentMap.get(user.id);
-        const ref = payment?.provider_reference || "";
-        const hasClaimed = payment?.status !== "paid" && ref.startsWith(CLAIM_PREFIX);
-        return {
-          user_id: user.id,
-          display_name: profileMap.get(user.id) || deriveDisplayName(user),
-          email: user.email || null,
-          status: payment?.status || "pending",
-          has_claimed: hasClaimed,
-          claimed_at: hasClaimed ? ref.slice(CLAIM_PREFIX.length) : null,
-          amount_cents: payment?.amount_cents || ENTRY_FEE_CENTS,
-          currency: payment?.currency || "eur",
-          provider_reference: payment?.provider_reference || null,
-          paid_at: payment?.paid_at || null,
-        };
-      })
-      // Gemelde betalingen bovenaan, daarna alfabetisch.
-      .sort(
-        (a, b) =>
-          Number(b.has_claimed) - Number(a.has_claimed) ||
-          a.display_name.localeCompare(b.display_name)
-      );
+    return (
+      allUsers
+        .map((user) => {
+          const payment = paymentMap.get(user.id);
+          const ref = payment?.provider_reference || "";
+          const hasClaimed = payment?.status !== "paid" && ref.startsWith(CLAIM_PREFIX);
+          return {
+            user_id: user.id,
+            display_name: profileMap.get(user.id) || deriveDisplayName(user),
+            email: user.email || null,
+            status: payment?.status || "pending",
+            has_claimed: hasClaimed,
+            claimed_at: hasClaimed ? ref.slice(CLAIM_PREFIX.length) : null,
+            amount_cents: payment?.amount_cents || ENTRY_FEE_CENTS,
+            currency: payment?.currency || "eur",
+            provider_reference: payment?.provider_reference || null,
+            paid_at: payment?.paid_at || null,
+          };
+        })
+        // Gemelde betalingen bovenaan, daarna alfabetisch.
+        .sort(
+          (a, b) =>
+            Number(b.has_claimed) - Number(a.has_claimed) ||
+            a.display_name.localeCompare(b.display_name),
+        )
+    );
   });
 
 export const saveMatchResult = createServerFn({ method: "POST" })
@@ -396,13 +411,14 @@ export const saveMatchResult = createServerFn({ method: "POST" })
     if (roleErr) throw new Error(roleErr.message);
     if (!isAdmin) throw new Error("Alleen admins kunnen uitslagen invoeren.");
 
-    const { error } = await supabaseAdmin
-      .from("match_results")
-      .upsert({
+    const { error } = await supabaseAdmin.from("match_results").upsert(
+      {
         match_id: data.match_id,
         home_score: data.home_score,
         away_score: data.away_score,
-      }, { onConflict: "match_id" });
+      },
+      { onConflict: "match_id" },
+    );
     if (error) throw new Error(error.message);
     return { success: true };
   });
@@ -418,7 +434,9 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
     if (data) return { isAdmin: true };
 
     // E-mails op de allowlist krijgen de adminrol automatisch toegekend.
-    const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const { data: user, error: userErr } = await supabaseAdmin.auth.admin.getUserById(
+      context.userId,
+    );
     if (userErr) throw new Error(userErr.message);
     const email = user.user.email?.toLowerCase();
     if (!email || !ADMIN_EMAILS.includes(email)) return { isAdmin: false };
@@ -427,7 +445,7 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
       .from("user_roles")
       .upsert(
         { user_id: context.userId, role: "admin" },
-        { onConflict: "user_id,role", ignoreDuplicates: true }
+        { onConflict: "user_id,role", ignoreDuplicates: true },
       );
     if (grantErr) throw new Error(grantErr.message);
     return { isAdmin: true };
@@ -458,14 +476,13 @@ export const setParticipantName = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {  const { data: predictions, error: predError } = await supabaseAdmin
+export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
+  const { data: predictions, error: predError } = await supabaseAdmin
     .from("predictions")
     .select("user_id, match_id, home_score, away_score");
   if (predError) throw new Error(predError.message);
 
-  const { data: results, error: resError } = await supabaseAdmin
-    .from("match_results")
-    .select("*");
+  const { data: results, error: resError } = await supabaseAdmin.from("match_results").select("*");
   if (resError) throw new Error(resError.message);
 
   const { data: profiles, error: profError } = await supabaseAdmin
@@ -512,7 +529,6 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   return leaderboard;
 });
 
-
 // ---- Mini-game highscores ----
 
 const GameScoreSchema = z.object({
@@ -546,15 +562,16 @@ export const submitGameScore = createServerFn({ method: "POST" })
       (gameSaldo(data) === gameSaldo(existing) && data.goals_for > existing.goals_for);
 
     if (improved) {
-      const { error } = await supabaseAdmin
-        .from("game_highscores")
-        .upsert({
+      const { error } = await supabaseAdmin.from("game_highscores").upsert(
+        {
           user_id: context.userId,
           goals_for: data.goals_for,
           goals_against: data.goals_against,
           opponent: data.opponent || null,
           achieved_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
+        },
+        { onConflict: "user_id" },
+      );
       if (error) throw new Error(error.message);
     }
 
@@ -590,7 +607,7 @@ export const getGameHighscores = createServerFn({ method: "GET" }).handler(async
       (a, b) =>
         b.saldo - a.saldo ||
         b.goals_for - a.goals_for ||
-        new Date(a.achieved_at).getTime() - new Date(b.achieved_at).getTime()
+        new Date(a.achieved_at).getTime() - new Date(b.achieved_at).getTime(),
     )
     .slice(0, 10);
 });
