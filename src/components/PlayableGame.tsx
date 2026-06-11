@@ -307,13 +307,14 @@ export function PlayableGame({
 
       if (s.phase === "idle") {
         px(ctx, 0, 60, W, 60, "rgba(6,9,20,0.85)");
-        text(ctx, "MINI MATCH", W / 2, 70, 10, ORANJE);
-        text(ctx, "2x 1 MIN  -  PAUZE 5S", W / 2, 90, 6, "#ffffff");
-        text(ctx, "PIJLTJES + SPATIE", W / 2, 104, 5, "#9aa4c8");
+        text(ctx, `NED vs ${opponentName.toUpperCase()}`, W / 2, 70, 8, ORANJE);
+        text(ctx, "2x 1 MIN  -  PAUZE 5S", W / 2, 88, 6, "#ffffff");
+        text(ctx, "PIJLTJES + SPATIE", W / 2, 102, 5, "#9aa4c8");
       } else if (s.phase === "break") {
-        px(ctx, 0, 70, W, 40, "rgba(6,9,20,0.85)");
-        text(ctx, "RUST", W / 2, 78, 12, ORANJE);
-        text(ctx, `2E HELFT IN ${s.phaseTimer}S`, W / 2, 96, 6, "#ffffff");
+        px(ctx, 0, 66, W, 48, "rgba(6,9,20,0.9)");
+        text(ctx, "RUST  -  WISSEL VAN HELFT", W / 2, 74, 6, ORANJE);
+        text(ctx, `2E HELFT IN ${s.phaseTimer}S`, W / 2, 92, 6, "#ffffff");
+        text(ctx, "NU AANVALLEN NAAR LINKS", W / 2, 104, 5, "#9aa4c8");
       } else if (s.phase === "done") {
         px(ctx, 0, 60, W, 60, "rgba(6,9,20,0.9)");
         text(ctx, "EINDE", W / 2, 68, 10, ORANJE);
