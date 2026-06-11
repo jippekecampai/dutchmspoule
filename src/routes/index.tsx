@@ -254,6 +254,13 @@ function Index() {
               description="Punten tikken binnen na elke wedstrijd. Hou de top — en de pot — in de gaten."
             />
           </div>
+          <p className="mt-8 text-center text-muted-foreground">
+            Nooit eerder meegedaan aan een poule?{" "}
+            <Link to="/uitleg" className="text-oranje underline hover:text-oranje-light">
+              Lees de uitgebreide uitleg
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
