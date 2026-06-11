@@ -570,3 +570,73 @@ export const getGameHighscores = createServerFn({ method: "GET" }).handler(async
     )
     .slice(0, 10);
 });
+
+// ---- Opmerkingen / vragen (feedback) ----
+
+const FeedbackSchema = z.object({
+  message: z.string().trim().min(1, "Schrijf eerst je opmerking.").max(2000),
+});
+
+const FeedbackStatusSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["open", "done"]),
+});
+
+export const submitFeedback = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => FeedbackSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    await ensureProfile(context.userId);
+    const { error } = await supabaseAdmin
+      .from("feedback")
+      .insert({ user_id: context.userId, message: data.message });
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const getFeedback = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Alleen admins kunnen opmerkingen bekijken.");
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("feedback")
+      .select("id, user_id, message, status, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const { data: profiles, error: profErr } = await supabaseAdmin
+      .from("profiles")
+      .select("id, display_name");
+    if (profErr) throw new Error(profErr.message);
+    const nameMap = new Map((profiles || []).map((p) => [p.id, p.display_name]));
+
+    return (rows || []).map((r) => ({
+      ...r,
+      display_name: nameMap.get(r.user_id) || "Speler",
+    }));
+  });
+
+export const setFeedbackStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => FeedbackStatusSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Alleen admins kunnen opmerkingen afhandelen.");
+
+    const { error } = await supabaseAdmin
+      .from("feedback")
+      .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
