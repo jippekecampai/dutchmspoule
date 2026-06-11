@@ -87,6 +87,14 @@ function LeaderboardPage() {
           <p className="mt-4 text-sm text-muted-foreground">
             Inleg: €15 per persoon. Betaal via de QR-code op de poulepagina.
           </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Alle inleg gaat in de pot en wordt volledig uitgekeerd aan de winnaars — niemand houdt er
+            iets aan over. Zie de{" "}
+            <Link to="/uitleg" className="underline hover:text-foreground">
+              uitleg
+            </Link>{" "}
+            voor een voorbeeld.
+          </p>
         </div>
       </div>
 

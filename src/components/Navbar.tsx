@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { checkIsAdmin } from "@/lib/pool.functions";
-import { Gamepad2, LogOut, User, Trophy, ListOrdered, ShieldCheck } from "lucide-react";
+import { Gamepad2, LogOut, User, Trophy, ListOrdered, ShieldCheck, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export function Navbar() {
   const [user, setUser] = useState<null | { id: string; email?: string }>(null);
@@ -62,6 +63,12 @@ export function Navbar() {
               <span className="hidden sm:inline">Klassement</span>
             </Button>
           </Link>
+          <Link to="/uitleg">
+            <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base hover:bg-oranje/20 hover:text-oranje-light">
+              <HelpCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Uitleg</span>
+            </Button>
+          </Link>
           {adminCheck?.isAdmin && (
             <Link to="/admin">
               <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base text-gold hover:bg-gold/20 hover:text-gold">
@@ -70,6 +77,8 @@ export function Navbar() {
               </Button>
             </Link>
           )}
+
+          <ThemeSwitcher />
 
           {user ? (
             <Button

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UitlegRouteImport } from './routes/uitleg'
 import { Route as PouleRouteImport } from './routes/poule'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -16,6 +17,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const UitlegRoute = UitlegRouteImport.update({
+  id: '/uitleg',
+  path: '/uitleg',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PouleRoute = PouleRouteImport.update({
   id: '/poule',
   path: '/poule',
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/uitleg': typeof UitlegRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/uitleg': typeof UitlegRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/uitleg': typeof UitlegRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/leaderboard'
     | '/poule'
+    | '/uitleg'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/leaderboard'
     | '/poule'
+    | '/uitleg'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/leaderboard'
     | '/poule'
+    | '/uitleg'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -106,11 +118,19 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PouleRoute: typeof PouleRoute
+  UitlegRoute: typeof UitlegRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/uitleg': {
+      id: '/uitleg'
+      path: '/uitleg'
+      fullPath: '/uitleg'
+      preLoaderRoute: typeof UitlegRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/poule': {
       id: '/poule'
       path: '/poule'
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   LeaderboardRoute: LeaderboardRoute,
   PouleRoute: PouleRoute,
+  UitlegRoute: UitlegRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport

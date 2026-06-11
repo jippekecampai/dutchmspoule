@@ -295,3 +295,215 @@
     background-size: 24px 24px;
   }
 }
+
+/* =========================================================================
+ * THEMA: REINIER — Nintendo-stijl
+ * Mario-blauwe lucht, Nintendo-rood en blokkerige NES-kaders.
+ * ========================================================================= */
+[data-theme="reinier"] {
+  --background: #5c94fc;
+  --foreground: #16213e;
+  --card: #ffffff;
+  --card-foreground: #16213e;
+  --popover: #ffffff;
+  --popover-foreground: #16213e;
+  --primary: #e60012;
+  --primary-foreground: #ffffff;
+  --secondary: #009b48;
+  --secondary-foreground: #ffffff;
+  --muted: #e8eefc;
+  --muted-foreground: #16213e;
+  --accent: #ffd000;
+  --accent-foreground: #16213e;
+  --destructive: #e60012;
+  --destructive-foreground: #ffffff;
+  --border: #16213e;
+  --input: #ffffff;
+  --ring: #e60012;
+  --oranje: #e60012;
+  --oranje-light: #ff5a4d;
+  --oranje-dark: #b3000e;
+  --navy: #ffffff;
+  --navy-light: #e8eefc;
+  --gold: #ffd000;
+}
+
+[data-theme="reinier"] body {
+  background-color: var(--background);
+  background-image: none;
+}
+
+[data-theme="reinier"] .pixel-card {
+  border: 3px solid #16213e;
+  background-image: none;
+  background-color: #ffffff;
+  box-shadow: 5px 5px 0 0 #16213e;
+}
+
+[data-theme="reinier"] .pixel-card:hover {
+  border-color: #16213e;
+  box-shadow: 5px 5px 0 0 #16213e;
+}
+
+[data-theme="reinier"] .pixel-card-flat {
+  border: 3px solid #16213e;
+}
+
+[data-theme="reinier"] .pixel-btn {
+  border: 3px solid #16213e;
+  box-shadow: 4px 4px 0 0 #16213e;
+}
+
+[data-theme="reinier"] .pixel-btn:hover {
+  filter: brightness(1.05);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 0 #16213e;
+}
+
+[data-theme="reinier"] .pixel-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 #16213e;
+}
+
+[data-theme="reinier"] .pattern-1988 {
+  background-color: #e60012;
+  background-image:
+    linear-gradient(135deg, #ff5a4d 25%, transparent 25%),
+    linear-gradient(225deg, #ff5a4d 25%, transparent 25%),
+    linear-gradient(45deg, #b3000e 25%, transparent 25%),
+    linear-gradient(315deg, #b3000e 25%, transparent 25%);
+}
+
+[data-theme="reinier"] .flag-strip {
+  background: repeating-linear-gradient(
+    90deg,
+    #e60012 0 24px,
+    #ffffff 24px 48px,
+    #e60012 48px 72px
+  );
+  box-shadow: none;
+}
+
+[data-theme="reinier"] .oranje-strip {
+  background: repeating-linear-gradient(90deg, #e60012 0 16px, #b3000e 16px 32px);
+}
+
+/* =========================================================================
+ * THEMA: ROLAND — lekker oersaai
+ * Witte corporate-look, Arial, geen scanlines, geen effecten.
+ * ========================================================================= */
+[data-theme="roland"] {
+  --radius: 0.25rem;
+  --background: #f4f4f4;
+  --foreground: #222222;
+  --card: #ffffff;
+  --card-foreground: #222222;
+  --popover: #ffffff;
+  --popover-foreground: #222222;
+  --primary: #3b5998;
+  --primary-foreground: #ffffff;
+  --secondary: #e2e2e2;
+  --secondary-foreground: #222222;
+  --muted: #ededed;
+  --muted-foreground: #666666;
+  --accent: #e2e2e2;
+  --accent-foreground: #222222;
+  --destructive: #9a3b3b;
+  --destructive-foreground: #ffffff;
+  --border: #cccccc;
+  --input: #ffffff;
+  --ring: #3b5998;
+  --oranje: #3b5998;
+  --oranje-light: #4a69ad;
+  --oranje-dark: #2d4373;
+  --navy: #ffffff;
+  --navy-light: #ededed;
+  --gold: #888888;
+  --font-pixel: Arial, Helvetica, sans-serif;
+  --font-retro: Arial, Helvetica, sans-serif;
+}
+
+[data-theme="roland"] body {
+  background-color: var(--background);
+  background-image: none;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Geen CRT-scanlines */
+[data-theme="roland"] body::after {
+  display: none;
+}
+
+/* Normale koppen i.p.v. pixelkapitalen */
+[data-theme="roland"] .pixel-heading {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+[data-theme="roland"] .pixel-heading.text-oranje,
+[data-theme="roland"] .pixel-heading .text-oranje {
+  text-shadow: none;
+}
+
+[data-theme="roland"] .pixel-card,
+[data-theme="roland"] .pixel-card-flat {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-image: none;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+[data-theme="roland"] .pixel-card:hover {
+  border-color: var(--border);
+  box-shadow: none;
+  transform: none;
+}
+
+[data-theme="roland"] .pixel-btn {
+  border: 1px solid #b0b0b0;
+  border-radius: 4px;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.9rem;
+}
+
+[data-theme="roland"] .pixel-btn:hover {
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="roland"] .pixel-btn:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Saaie grijze balk i.p.v. het oranje zigzagpatroon, met leesbare donkere tekst */
+[data-theme="roland"] .pattern-1988 {
+  background-color: #dddddd;
+  background-image: none;
+}
+
+[data-theme="roland"] .pattern-1988,
+[data-theme="roland"] .pattern-1988 * {
+  color: #222222 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="roland"] .flag-strip,
+[data-theme="roland"] .oranje-strip {
+  background: #cccccc;
+  box-shadow: none;
+  height: 1px;
+}
+
+[data-theme="roland"] .blink {
+  animation: none;
+}
+
+[data-theme="roland"] .pixel-grid-bg {
+  background-image: none;
+}
