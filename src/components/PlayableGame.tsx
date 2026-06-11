@@ -102,6 +102,11 @@ export function PlayableGame({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [, setScore] = useState<[number, number]>([0, 0]);
+  // Touch-besturing alleen op touch-apparaten; op desktop bestuur je met het toetsenbord.
+  const [isTouch, setIsTouch] = useState(false);
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
+  }, []);
 
   const onMatchEndRef = useRef(onMatchEnd);
   onMatchEndRef.current = onMatchEnd;
@@ -450,13 +455,21 @@ export function PlayableGame({
             style={{
               imageRendering: "pixelated",
               aspectRatio: "16/9",
-              width: "min(92vw, calc((100dvh - 220px) * 16 / 9), 56rem)",
+              width: isTouch
+                ? "min(92vw, calc((100dvh - 220px) * 16 / 9), 56rem)"
+                : "min(92vw, calc((100dvh - 140px) * 16 / 9), 64rem)",
             }}
           />
         </div>
       </div>
 
-      {/* Touch-besturing: joystick links, SHOOT rechts — altijd in beeld */}
+      {/* Touch-besturing: joystick links, SHOOT rechts — alleen op touch-apparaten */}
+      {!isTouch && (
+        <p className="pb-4 text-center text-sm text-muted-foreground">
+          Besturing: pijltjes of WASD om te bewegen · spatie om te schieten · Esc om te stoppen
+        </p>
+      )}
+      {isTouch && (
       <div className="flex items-end justify-between px-6 pb-6 pt-1 sm:px-12">
         <div
           className="relative flex h-28 w-28 touch-none select-none items-center justify-center rounded-full border-[3px] border-oranje/60 bg-navy-light/60"
@@ -505,6 +518,7 @@ export function PlayableGame({
           SHOOT
         </button>
       </div>
+      )}
     </div>
   );
 }
