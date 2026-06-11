@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { LangProvider } from "@/lib/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { applyCustomColors, getStoredCustom } from "@/lib/theme";
 
@@ -143,15 +144,17 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="pixel-grid-bg flex min-h-screen flex-col">
-        <Navbar />
-        <div className="flex-1">
-          <Outlet />
+      <LangProvider>
+        <div className="pixel-grid-bg flex min-h-screen flex-col">
+          <Navbar />
+          <div className="flex-1">
+            <Outlet />
+          </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-      <FeedbackButton />
-      <Toaster position="top-center" richColors />
+        <FeedbackButton />
+        <Toaster position="top-center" richColors />
+      </LangProvider>
     </QueryClientProvider>
   );
 }

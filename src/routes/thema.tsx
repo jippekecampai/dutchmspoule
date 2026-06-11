@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Palette, RotateCcw, Check, Trophy } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import {
   ACCENT_PRESETS,
   BACKGROUND_PRESETS,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/thema")({
 });
 
 function ThemeEditorPage() {
+  const { t } = useI18n();
   const [colors, setColors] = useState<CustomColors>({});
   const [bgEnabled, setBgEnabled] = useState(false);
 
@@ -56,10 +58,10 @@ function ThemeEditorPage() {
             <Palette className="h-6 w-6 text-oranje" />
           </div>
           <h1 className="pixel-heading text-lg text-white [text-shadow:2px_2px_0_rgb(0_0_0/0.6)] sm:text-2xl">
-            Eigen kleuren
+            {t("Eigen kleuren", "Custom colours")}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-lg font-medium text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.6)]">
-            Kies je eigen accentkleur. Werkt bovenop het gekozen thema en wordt meteen toegepast.
+            {t("Kies je eigen accentkleur. Werkt bovenop het gekozen thema en wordt meteen toegepast.", "Pick your own accent colour. Works on top of the chosen theme and applies instantly.")}
           </p>
         </div>
         <div className="flag-strip" />
@@ -67,7 +69,7 @@ function ThemeEditorPage() {
 
       {/* Accentkleur */}
       <section className="pixel-card mb-6 p-6">
-        <h2 className="pixel-heading mb-4 text-[0.75rem] text-oranje">Accentkleur</h2>
+        <h2 className="pixel-heading mb-4 text-[0.75rem] text-oranje">{t("Accentkleur", "Accent colour")}</h2>
         <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
           {ACCENT_PRESETS.map((preset) => {
             const active = (colors.accent || "").toLowerCase() === preset.value.toLowerCase();
@@ -91,7 +93,7 @@ function ThemeEditorPage() {
 
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <label className="flex items-center gap-3 text-muted-foreground">
-            <span>Eigen kleur:</span>
+            <span>{t("Eigen kleur:", "Custom colour:")}</span>
             <input
               type="color"
               value={accent}
@@ -107,7 +109,7 @@ function ThemeEditorPage() {
       {/* Achtergrond (optioneel) */}
       <section className="pixel-card mb-6 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="pixel-heading text-[0.75rem] text-oranje">Achtergrond</h2>
+          <h2 className="pixel-heading text-[0.75rem] text-oranje">{t("Achtergrond", "Background")}</h2>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input
               type="checkbox"
@@ -119,7 +121,7 @@ function ThemeEditorPage() {
               }}
               className="h-4 w-4 accent-[var(--color-oranje)]"
             />
-            Eigen achtergrond gebruiken
+            {t("Eigen achtergrond gebruiken", "Use custom background")}
           </label>
         </div>
 
@@ -147,7 +149,7 @@ function ThemeEditorPage() {
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-4">
               <label className="flex items-center gap-3 text-muted-foreground">
-                <span>Eigen kleur:</span>
+                <span>{t("Eigen kleur:", "Custom colour:")}</span>
                 <input
                   type="color"
                   value={colors.background || BACKGROUND_PRESETS[0].value}
@@ -163,23 +165,23 @@ function ThemeEditorPage() {
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            De achtergrond van het gekozen thema blijft staan. Zet dit aan om hem te overschrijven.
+            {t("De achtergrond van het gekozen thema blijft staan. Zet dit aan om hem te overschrijven.", "The background of the chosen theme stays. Turn this on to override it.")}
           </p>
         )}
       </section>
 
       {/* Live voorbeeld */}
       <section className="pixel-card mb-6 p-6">
-        <h2 className="pixel-heading mb-4 text-[0.75rem] text-oranje">Voorbeeld</h2>
+        <h2 className="pixel-heading mb-4 text-[0.75rem] text-oranje">{t("Voorbeeld", "Preview")}</h2>
         <div className="flex flex-wrap items-center gap-4">
           <Button className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
-            Voorbeeldknop
+            {t("Voorbeeldknop", "Sample button")}
           </Button>
           <span className="pixel-heading text-sm">
             <span className="text-oranje">★</span> Accent <span className="text-oranje">★</span>
           </span>
           <span className="inline-flex items-center gap-1.5 border-2 border-oranje/50 bg-oranje/10 px-3 py-1 text-sm text-oranje-light">
-            <Trophy className="h-4 w-4" /> Voorbeeldlabel
+            <Trophy className="h-4 w-4" /> {t("Voorbeeldlabel", "Sample label")}
           </span>
         </div>
       </section>
@@ -187,7 +189,7 @@ function ThemeEditorPage() {
       {/* Acties */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          Wijzigingen worden meteen opgeslagen in deze browser.
+          {t("Wijzigingen worden meteen opgeslagen in deze browser.", "Changes are saved instantly in this browser.")}
         </p>
         <div className="flex gap-3">
           <Button
@@ -195,11 +197,11 @@ function ThemeEditorPage() {
             className="rounded-none hover:bg-oranje/15"
             onClick={reset}
           >
-            <RotateCcw className="mr-2 h-4 w-4" /> Standaard herstellen
+            <RotateCcw className="mr-2 h-4 w-4" /> {t("Standaard herstellen", "Restore defaults")}
           </Button>
           <Link to="/">
             <Button className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
-              Klaar
+              {t("Klaar", "Done")}
             </Button>
           </Link>
         </div>

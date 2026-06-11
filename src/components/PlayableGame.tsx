@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X, RotateCcw, Play } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 /*
  * Speelbaar 8-bit mini-voetbalspelletje: 2 helften van 1 minuut met 5 seconden rust.
@@ -99,6 +100,7 @@ export function PlayableGame({
   opponentName?: string;
   opponentCode?: string;
 }) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [, setScore] = useState<[number, number]>([0, 0]);
@@ -426,7 +428,7 @@ export function PlayableGame({
               className="pixel-btn flex items-center gap-1.5 bg-oranje px-3 py-1.5 text-primary-foreground"
             >
               {phase === "done" ? <RotateCcw className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-              {phase === "done" ? "OPNIEUW" : "START"}
+              {phase === "done" ? t("OPNIEUW", "AGAIN") : "START"}
             </button>
           )}
           <button
@@ -466,7 +468,7 @@ export function PlayableGame({
       {/* Touch-besturing: joystick links, SHOOT rechts — alleen op touch-apparaten */}
       {!isTouch && (
         <p className="pb-4 text-center text-sm text-muted-foreground">
-          Besturing: pijltjes of WASD om te bewegen · spatie om te schieten · Esc om te stoppen
+          {t("Besturing: pijltjes of WASD om te bewegen · spatie om te schieten · Esc om te stoppen", "Controls: arrows or WASD to move · space to shoot · Esc to quit")}
         </p>
       )}
       {isTouch && (

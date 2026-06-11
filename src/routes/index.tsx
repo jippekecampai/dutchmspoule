@@ -9,12 +9,14 @@ import { PlayableGame } from "@/components/PlayableGame";
 import { supabase } from "@/integrations/supabase/client";
 import { getMatches, getPredictions, submitGameScore } from "@/lib/pool.functions";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
+  const { t } = useI18n();
   const [user, setUser] = useState<null | { id: string }>(null);
   const [playing, setPlaying] = useState(false);
   const queryClient = useQueryClient();
@@ -25,10 +27,10 @@ function Index() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["game_highscores"] });
       if (result.improved) {
-        toast.success("Nieuwe highscore! Bekijk de ranglijst bij het klassement.");
+        toast.success(t("Nieuwe highscore! Bekijk de ranglijst bij het klassement.", "New high score! Check the arcade rankings on the standings page."));
       } else {
         toast.info(
-          `Geen record — je beste blijft ${result.best?.goals_for}-${result.best?.goals_against}.`
+          t(`Geen record — je beste blijft ${result.best?.goals_for}-${result.best?.goals_against}.`, `No record — your best is still ${result.best?.goals_for}-${result.best?.goals_against}.`)
         );
       }
     },
@@ -37,7 +39,7 @@ function Index() {
 
   const handleMatchEnd = (goalsFor: number, goalsAgainst: number) => {
     if (!user) {
-      toast.info("Log in om je score op de highscore-lijst te zetten!");
+      toast.info(t("Log in om je score op de highscore-lijst te zetten!", "Log in to get your score on the high-score list!"));
       return;
     }
     scoreMutation.mutate({
@@ -103,7 +105,7 @@ function Index() {
         <div className="relative mx-auto max-w-5xl px-4 text-center">
           <div className="pixel-heading mb-6 inline-flex items-center gap-2 border-2 border-oranje bg-navy/80 px-4 py-2 text-[0.6rem] text-oranje-light">
             <Trophy className="h-4 w-4" />
-            WK 2026 — Groep F
+            {t("WK 2026 — Groep F", "World Cup 2026 — Group F")}
           </div>
           <h1 className="pixel-heading mb-6 text-2xl leading-relaxed text-foreground sm:text-4xl">
             DutchMSP
@@ -111,19 +113,19 @@ function Index() {
             <span className="text-oranje">WK Poule</span>
           </h1>
           <p className="mx-auto mb-8 max-w-xl text-xl text-muted-foreground">
-            Voorspel de standen van Oranje op het WK, sprokkel punten bij elke wedstrijd en strijd mee om de pot. Wie kent het Nederlands elftal het best?
+            {t("Voorspel de standen van Oranje op het WK, sprokkel punten bij elke wedstrijd en strijd mee om de pot. Wie kent het Nederlands elftal het best?", "Predict the scores of the Dutch team at the World Cup, collect points every match and compete for the pot. Who knows the Oranje best?")}
           </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link to="/poule">
               <Button size="lg" className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
-                Doe mee aan de poule
+                {t("Doe mee aan de poule", "Join the pool")}
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
             <Link to="/leaderboard">
               <Button size="lg" className="pixel-btn bg-navy-light text-foreground hover:bg-secondary">
-                Bekijk het klassement
+                {t("Bekijk het klassement", "View the standings")}
               </Button>
             </Link>
           </div>
@@ -134,11 +136,10 @@ function Index() {
       {/* 8-bit arcadespelletje */}
       <section className="mx-auto max-w-5xl px-4 pt-16 text-center">
         <h2 className="pixel-heading mb-3 text-sm text-foreground sm:text-base">
-          Tussendoortje: het 8-bit spelletje
+          {t("Tussendoortje: het 8-bit spelletje", "Side quest: the 8-bit game")}
         </h2>
         <p className="mx-auto mb-8 max-w-xl text-lg text-muted-foreground">
-          Even wachten op de aftrap? Speel een potje retro-voetbal. Puur voor de lol — en voor de
-          eeuwige roem op de arcade-ranglijst.
+          {t("Even wachten op de aftrap? Speel een potje retro-voetbal. Puur voor de lol — en voor de eeuwige roem op de arcade-ranglijst.", "Waiting for kick-off? Play a round of retro football. Purely for fun — and for eternal glory on the arcade leaderboard.")}
         </p>
 
         {playing ? (
@@ -159,16 +160,15 @@ function Index() {
                 onClick={() => setPlaying(true)}
                 className="pixel-btn bg-oranje px-6 py-3 text-primary-foreground shadow-[4px_4px_0_0_rgb(0_0_0/0.6)] hover:bg-oranje-dark"
               >
-                ▶ SPEEL HET SPELLETJE
+                ▶ {t("SPEEL HET SPELLETJE", "PLAY THE GAME")}
               </button>
               <p className="pixel-heading blink text-[0.55rem] text-oranje-light">
-                {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
+                {predictedScores ? t("Met jouw voorspellingen — PRESS START", "With your predictions — PRESS START") : "PRESS START TO PLAY"}
               </p>
               <p className="max-w-md text-xs text-muted-foreground">
-                Een mini-wedstrijd van 2× 1 minuut. Op mobiel: joystick links, SHOOT rechts. Op
-                desktop: pijltjes/WASD en spatie. Ingelogd? Dan telt je beste uitslag mee op de{" "}
+                {t("Een mini-wedstrijd van 2× 1 minuut. Op mobiel: joystick links, SHOOT rechts. Op desktop: pijltjes/WASD en spatie. Ingelogd? Dan telt je beste uitslag mee op de", "A mini-match of 2× 1 minute. On mobile: joystick left, SHOOT right. On desktop: arrows/WASD and space. Logged in? Your best result counts on the")}{" "}
                 <Link to="/leaderboard" className="underline hover:text-foreground">
-                  highscore-lijst
+                  {t("highscore-lijst", "high-score list")}
                 </Link>
                 .
               </p>
@@ -182,18 +182,18 @@ function Index() {
         <div className="grid gap-6 sm:grid-cols-3">
           <FeatureCard
             icon={<CreditCard className="h-5 w-5 text-oranje" />}
-            title="Eén keer inleggen"
-            description="Leg eenmalig in en speel het hele toernooi mee om de prijzenpot."
+            title={t("Eén keer inleggen", "Pay once")}
+            description={t("Leg eenmalig in en speel het hele toernooi mee om de prijzenpot.", "Pay the entry fee once and play the whole tournament for the prize pot.")}
           />
           <FeatureCard
             icon={<Lock className="h-5 w-5 text-oranje" />}
-            title="Eerlijk spel"
-            description="Je voorspelling staat vast vanaf 10 minuten voor de aftrap — niemand kan nog gluren."
+            title={t("Eerlijk spel", "Fair play")}
+            description={t("Je voorspelling staat vast vanaf 10 minuten voor de aftrap — niemand kan nog gluren.", "Your prediction locks 10 minutes before kick-off — no peeking after that.")}
           />
           <FeatureCard
             icon={<ListChecks className="h-5 w-5 text-oranje" />}
-            title="Altijd zicht op de stand"
-            description="Na elke wedstrijd zie je meteen hoe je ervoor staat tegenover de rest."
+            title={t("Altijd zicht op de stand", "Always see where you stand")}
+            description={t("Na elke wedstrijd zie je meteen hoe je ervoor staat tegenover de rest.", "After every match you instantly see how you compare to the rest.")}
           />
         </div>
       </section>
@@ -201,31 +201,31 @@ function Index() {
       {/* Matches */}
       <section className="mx-auto max-w-5xl px-4 py-16">
         <h2 className="pixel-heading mb-10 text-center text-sm text-foreground sm:text-base">
-          <span className="text-oranje">★</span> Nederlandse Groepswedstrijden <span className="text-oranje">★</span>
+          <span className="text-oranje">★</span> {t("Nederlandse Groepswedstrijden", "Dutch Group Matches")} <span className="text-oranje">★</span>
         </h2>
         <div className="grid gap-6 sm:grid-cols-3">
           <MatchCard
-            round="Groepsfase • 1"
-            date="Zondag 14 juni"
+            round={t("Groepsfase • 1", "Group stage • 1")}
+            date={t("Zondag 14 juni", "Sunday June 14")}
             time="22:00"
-            home="Nederland"
-            away="Japan"
+            home={t("Nederland", "Netherlands")}
+            away={t("Japan", "Japan")}
             venue="AT&T Stadium, Dallas"
           />
           <MatchCard
-            round="Groepsfase • 2"
-            date="Zaterdag 20 juni"
+            round={t("Groepsfase • 2", "Group stage • 2")}
+            date={t("Zaterdag 20 juni", "Saturday June 20")}
             time="19:00"
-            home="Nederland"
-            away="Zweden"
+            home={t("Nederland", "Netherlands")}
+            away={t("Zweden", "Sweden")}
             venue="NRG Stadium, Houston"
           />
           <MatchCard
-            round="Groepsfase • 3"
-            date="Vrijdag 26 juni"
+            round={t("Groepsfase • 3", "Group stage • 3")}
+            date={t("Vrijdag 26 juni", "Friday June 26")}
             time="01:00"
-            home="Tunesië"
-            away="Nederland"
+            home={t("Tunesië", "Tunisia")}
+            away={t("Nederland", "Netherlands")}
             venue="Arrowhead Stadium, Kansas City"
           />
         </div>
@@ -235,29 +235,29 @@ function Index() {
       <section className="border-y-[3px] border-oranje/40 bg-navy py-16">
         <div className="mx-auto max-w-5xl px-4">
           <h2 className="pixel-heading mb-10 text-center text-sm text-foreground sm:text-base">
-            Hoe werkt het?
+            {t("Hoe werkt het?", "How does it work?")}
           </h2>
           <div className="grid gap-6 sm:grid-cols-3">
             <StepCard
               icon={<Shield className="h-6 w-6 text-oranje" />}
-              title="1. Doe mee"
-              description="Maak je account, leg in en je speelt het hele WK mee."
+              title={t("1. Doe mee", "1. Join")}
+              description={t("Maak je account, leg in en je speelt het hele WK mee.", "Create your account, pay the entry fee and you play the whole World Cup.")}
             />
             <StepCard
               icon={<Calendar className="h-6 w-6 text-oranje" />}
-              title="2. Voorspel de standen"
-              description="Tik per wedstrijd je uitslag in — aanpassen kan tot vlak voor de aftrap."
+              title={t("2. Voorspel de standen", "2. Predict the scores")}
+              description={t("Tik per wedstrijd je uitslag in — aanpassen kan tot vlak voor de aftrap.", "Enter your score for each match — you can change it until just before kick-off.")}
             />
             <StepCard
               icon={<Trophy className="h-6 w-6 text-oranje" />}
-              title="3. Klim in de ranglijst"
-              description="Punten tikken binnen na elke wedstrijd. Hou de top — en de pot — in de gaten."
+              title={t("3. Klim in de ranglijst", "3. Climb the rankings")}
+              description={t("Punten tikken binnen na elke wedstrijd. Hou de top — en de pot — in de gaten.", "Points roll in after every match. Keep an eye on the top — and the pot.")}
             />
           </div>
           <p className="mt-8 text-center text-muted-foreground">
-            Nooit eerder meegedaan aan een poule?{" "}
+            {t("Nooit eerder meegedaan aan een poule?", "Never joined a prediction pool before?")}{" "}
             <Link to="/uitleg" className="text-oranje underline hover:text-oranje-light">
-              Lees de uitgebreide uitleg
+              {t("Lees de uitgebreide uitleg", "Read the full guide")}
             </Link>
             .
           </p>
@@ -268,14 +268,14 @@ function Index() {
       <section className="border-t-[3px] border-oranje/40 bg-navy py-16">
         <div className="mx-auto max-w-5xl px-4 text-center">
         <h2 className="pixel-heading mb-5 text-sm text-foreground sm:text-base">
-          Klaar om mee te doen?
+          {t("Klaar om mee te doen?", "Ready to join?")}
         </h2>
         <p className="mb-8 text-lg text-muted-foreground">
-          Pak je plek in de poule en laat zien dat jij Oranje het best aanvoelt.
+          {t("Pak je plek in de poule en laat zien dat jij Oranje het best aanvoelt.", "Grab your spot in the pool and show you know the Oranje best.")}
         </p>
         <Link to="/poule">
           <Button size="lg" className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
-            Start je voorspellingen
+            {t("Start je voorspellingen", "Start predicting")}
           </Button>
         </Link>
         </div>
