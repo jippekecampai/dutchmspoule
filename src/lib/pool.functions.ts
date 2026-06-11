@@ -484,3 +484,85 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   return leaderboard;
 });
 
+
+// ---- Mini-game highscores ----
+
+const GameScoreSchema = z.object({
+  goals_for: z.number().int().min(0).max(99),
+  goals_against: z.number().int().min(0).max(99),
+  opponent: z.string().trim().max(40).optional(),
+});
+
+function gameSaldo(row: { goals_for: number; goals_against: number }) {
+  return row.goals_for - row.goals_against;
+}
+
+// Slaat het resultaat op als persoonlijk record wanneer het beter is dan het
+// vorige (hoger doelsaldo, bij gelijk saldo meer goals).
+export const submitGameScore = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => GameScoreSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    await ensureProfile(context.userId);
+
+    const { data: existing, error: existingErr } = await supabaseAdmin
+      .from("game_highscores")
+      .select("goals_for, goals_against")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (existingErr) throw new Error(existingErr.message);
+
+    const improved =
+      !existing ||
+      gameSaldo(data) > gameSaldo(existing) ||
+      (gameSaldo(data) === gameSaldo(existing) && data.goals_for > existing.goals_for);
+
+    if (improved) {
+      const { error } = await supabaseAdmin
+        .from("game_highscores")
+        .upsert({
+          user_id: context.userId,
+          goals_for: data.goals_for,
+          goals_against: data.goals_against,
+          opponent: data.opponent || null,
+          achieved_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+      if (error) throw new Error(error.message);
+    }
+
+    return {
+      improved,
+      best: improved ? { goals_for: data.goals_for, goals_against: data.goals_against } : existing,
+    };
+  });
+
+export const getGameHighscores = createServerFn({ method: "GET" }).handler(async () => {
+  const { data: scores, error } = await supabaseAdmin
+    .from("game_highscores")
+    .select("user_id, goals_for, goals_against, opponent, achieved_at");
+  if (error) throw new Error(error.message);
+
+  const { data: profiles, error: profErr } = await supabaseAdmin
+    .from("profiles")
+    .select("id, display_name");
+  if (profErr) throw new Error(profErr.message);
+  const nameMap = new Map((profiles || []).map((p) => [p.id, p.display_name]));
+
+  return (scores || [])
+    .map((s) => ({
+      user_id: s.user_id,
+      display_name: nameMap.get(s.user_id) || "Speler",
+      goals_for: s.goals_for,
+      goals_against: s.goals_against,
+      saldo: s.goals_for - s.goals_against,
+      opponent: s.opponent,
+      achieved_at: s.achieved_at,
+    }))
+    .sort(
+      (a, b) =>
+        b.saldo - a.saldo ||
+        b.goals_for - a.goals_for ||
+        new Date(a.achieved_at).getTime() - new Date(b.achieved_at).getTime()
+    )
+    .slice(0, 10);
+});
