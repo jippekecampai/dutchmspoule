@@ -301,7 +301,7 @@ export function PlayableGame({
       // Scorebord
       px(ctx, W / 2 - 56, 2, 112, 18, "rgba(6,9,20,0.92)");
       px(ctx, W / 2 - 56, 2, 112, 2, ORANJE);
-      text(ctx, `NED ${s.home}-${s.away} CPU`, W / 2, 7, 7, "#ffffff");
+      text(ctx, `NED ${s.home}-${s.away} ${opponentCode.slice(0, 3).toUpperCase()}`, W / 2, 7, 7, "#ffffff");
       const mm = Math.max(0, s.phaseTimer);
       text(ctx, `${String(mm).padStart(2, "0")}s`, W / 2, 14, 5, "#9aa4c8");
 
