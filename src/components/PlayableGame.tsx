@@ -247,6 +247,8 @@ export function PlayableGame({
         const ody = s.ball.y - s.opponent.y - 2;
         const od = Math.hypot(odx, ody) || 1;
         const ospeed = 48;
+        const oppAttackRight = s.phase !== "half1"; // tegenstander valt aan in tegengestelde richting
+        void oppAttackRight;
         s.opponent.x = clamp(s.opponent.x + (odx / od) * ospeed * dt, 8, W - 8);
         s.opponent.y = clamp(s.opponent.y + (ody / od) * ospeed * dt, 28, H - 14);
         if (od < 8 && hasBall) {
