@@ -52,6 +52,22 @@ function Index() {
     });
   }, [matches, predictions]);
 
+  // Eerstvolgende tegenstander van Nederland (op match_date).
+  const nextOpponent = useMemo(() => {
+    if (!matches?.length) return { name: "Tegenstander", code: "CPU" };
+    const now = Date.now();
+    const upcoming =
+      matches.find(
+        (m) =>
+          new Date(m.match_date).getTime() > now &&
+          (m.home_team === "Nederland" || m.away_team === "Nederland"),
+      ) ||
+      matches.find((m) => m.home_team === "Nederland" || m.away_team === "Nederland");
+    if (!upcoming) return { name: "Tegenstander", code: "CPU" };
+    const name = upcoming.home_team === "Nederland" ? upcoming.away_team : upcoming.home_team;
+    return { name, code: name.slice(0, 3).toUpperCase() };
+  }, [matches]);
+
   return (
     <div>
       {/* Hero */}
