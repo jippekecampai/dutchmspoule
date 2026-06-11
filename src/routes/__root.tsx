@@ -112,9 +112,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="nl">
+    <html lang="nl" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('dutchmsp-theme');if(t&&['oranje','reinier','roland'].indexOf(t)>=0){document.documentElement.setAttribute('data-theme',t);}}catch(e){}",
+          }}
+        />
       </head>
       <body>
         {children}

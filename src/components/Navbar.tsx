@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkIsAdmin } from "@/lib/pool.functions";
 import { Gamepad2, LogOut, User, Trophy, ListOrdered, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export function Navbar() {
   const [user, setUser] = useState<null | { id: string; email?: string }>(null);
@@ -70,6 +71,8 @@ export function Navbar() {
               </Button>
             </Link>
           )}
+
+          <ThemeSwitcher />
 
           {user ? (
             <Button
