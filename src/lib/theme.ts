@@ -1,9 +1,9 @@
 export type ThemeId = "oranje" | "reinier" | "roland";
 
 export const THEMES: { id: ThemeId; label: string }[] = [
-  { id: "oranje", label: "88" },
-  { id: "reinier", label: "Reinier" },
-  { id: "roland", label: "Roland" },
+  { id: "oranje", label: "Default - '88" },
+  { id: "reinier", label: "Retro (Nintendo)" },
+  { id: "roland", label: "Saai (RoStyle)" },
 ];
 
 export const DEFAULT_THEME: ThemeId = "oranje";

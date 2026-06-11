@@ -40,7 +40,7 @@ export function ThemeSwitcher() {
         <span className="hidden sm:inline">Thema</span>
       </Button>
       {open && (
-        <div className="pixel-card absolute right-0 z-50 mt-2 w-40 p-1">
+        <div className="pixel-card absolute right-0 z-50 mt-2 w-52 p-1">
           {THEMES.map((t) => (
             <button
               key={t.id}
