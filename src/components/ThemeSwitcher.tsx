@@ -40,7 +40,7 @@ export function ThemeSwitcher() {
         <span className="hidden sm:inline">Thema</span>
       </Button>
       {open && (
-        <div className="pixel-card absolute right-0 z-50 mt-2 w-56 p-1">
+        <div className="pixel-card absolute right-0 z-50 mt-2 w-40 p-1">
           {THEMES.map((t) => (
             <button
               key={t.id}
@@ -48,10 +48,7 @@ export function ThemeSwitcher() {
               onClick={() => select(t.id)}
               className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-oranje/15"
             >
-              <span>
-                <span className="block text-foreground">{t.label}</span>
-                <span className="block text-sm text-muted-foreground">{t.description}</span>
-              </span>
+              <span className="text-foreground">{t.label}</span>
               {theme === t.id && <Check className="h-4 w-4 shrink-0 text-oranje" />}
             </button>
           ))}
