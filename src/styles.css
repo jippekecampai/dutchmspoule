@@ -60,7 +60,7 @@
  * Eén thema voor de hele app; geen aparte light/dark variant.
  */
 :root {
-  --radius: 0rem;
+  --radius: 0.5rem;
   --background: oklch(0.17 0.03 265);
   --foreground: oklch(0.96 0.01 90);
   --card: oklch(0.22 0.035 265);
@@ -111,27 +111,40 @@
   }
 
   body {
-    background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-retro);
     font-size: 1.2rem;
-    line-height: 1.35;
-    image-rendering: pixelated;
+    line-height: 1.4;
+    /* Zachte dieptewerking: navy met een warme oranje gloed bovenin */
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(
+        120% 80% at 50% -10%,
+        oklch(0.3 0.09 45 / 0.45) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        100% 60% at 50% 110%,
+        oklch(0.25 0.06 265 / 0.6) 0%,
+        transparent 60%
+      );
+    background-attachment: fixed;
   }
 
-  /* CRT-scanlines over het hele scherm */
+  /* CRT-scanlines — subtiel zodat het niet vermoeiend wordt */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 9999;
     pointer-events: none;
+    opacity: 0.5;
     background: repeating-linear-gradient(
       0deg,
-      rgb(0 0 0 / 0.14) 0px,
-      rgb(0 0 0 / 0.14) 1px,
+      rgb(0 0 0 / 0.06) 0px,
+      rgb(0 0 0 / 0.06) 1px,
       transparent 1px,
-      transparent 3px
+      transparent 4px
     );
   }
 
@@ -155,36 +168,63 @@
 }
 
 @layer components {
-  /* Hard-edged pixelkader zoals oude game-menu's */
+  /* Verfijnd retro-kader: zachte rand met subtiele gradient en gloed */
   .pixel-card {
-    border-radius: 0;
-    border: 3px solid var(--color-oranje);
-    background-color: var(--color-card);
+    border-radius: var(--radius);
+    border: 2px solid oklch(0.68 0.2 45 / 0.55);
+    background-image: linear-gradient(
+      160deg,
+      oklch(0.25 0.04 265) 0%,
+      oklch(0.2 0.035 265) 100%
+    );
     box-shadow:
-      0 0 0 3px oklch(0.12 0.02 265),
-      6px 6px 0 0 oklch(0.12 0.02 265 / 0.9);
+      0 1px 0 0 oklch(1 0 0 / 0.04) inset,
+      0 10px 30px -12px oklch(0.05 0.02 265 / 0.8),
+      0 0 24px -8px oklch(0.68 0.2 45 / 0.35);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .pixel-card:hover {
+    border-color: oklch(0.72 0.2 48 / 0.8);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.06) inset,
+      0 14px 36px -12px oklch(0.05 0.02 265 / 0.85),
+      0 0 32px -6px oklch(0.68 0.2 45 / 0.5);
   }
 
   .pixel-card-flat {
-    border-radius: 0;
-    border: 3px solid var(--color-oranje);
+    border-radius: var(--radius);
+    border: 2px solid oklch(0.68 0.2 45 / 0.4);
     background-color: var(--color-card);
   }
 
   .pixel-btn {
-    border-radius: 0 !important;
+    border-radius: calc(var(--radius) - 2px) !important;
     font-family: var(--font-pixel);
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border: 3px solid oklch(0.12 0.02 265);
-    box-shadow: 4px 4px 0 0 oklch(0.12 0.02 265);
-    transition: transform 75ms, box-shadow 75ms;
+    border: 1px solid oklch(0.12 0.02 265 / 0.6);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.18) inset,
+      0 6px 16px -6px oklch(0.05 0.02 265 / 0.7);
+    transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+  }
+
+  .pixel-btn:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.22) inset,
+      0 10px 22px -6px oklch(0.05 0.02 265 / 0.75),
+      0 0 20px -4px oklch(0.68 0.2 45 / 0.45);
   }
 
   .pixel-btn:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0 0 0 0 oklch(0.12 0.02 265);
+    transform: translateY(1px);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.12) inset,
+      0 3px 8px -4px oklch(0.05 0.02 265 / 0.6);
   }
 
   /* Het iconische zigzag-patroon van het Oranje EK'88-shirt */
@@ -204,15 +244,16 @@
     background-repeat: repeat;
   }
 
-  /* Rood-wit-blauwe vlagstrip als blokjes */
+  /* Rood-wit-blauwe vlagstrip met zachte gloed */
   .flag-strip {
-    height: 8px;
+    height: 6px;
     background: repeating-linear-gradient(
       90deg,
       #c8102e 0 24px,
-      #ffffff 24px 48px,
+      #f4f4f4 24px 48px,
       #003da5 48px 72px
     );
+    box-shadow: 0 0 12px -2px oklch(0.68 0.2 45 / 0.4);
   }
 
   /* Oranje accentstrip */
@@ -228,6 +269,12 @@
   .pixel-heading {
     font-family: var(--font-pixel);
     text-transform: uppercase;
+  }
+
+  /* Zachte neon-gloed op oranje koppen — geeft arcade-sfeer zonder hardheid */
+  .pixel-heading.text-oranje,
+  .pixel-heading .text-oranje {
+    text-shadow: 0 0 18px oklch(0.68 0.2 45 / 0.45);
   }
 
   .blink {
