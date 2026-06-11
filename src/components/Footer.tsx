@@ -1,4 +1,7 @@
+import { useI18n } from "@/lib/i18n";
+
 export function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="mt-12 border-t-[3px] border-oranje bg-navy">
       <div className="flag-strip" />
@@ -7,7 +10,7 @@ export function Footer() {
           DutchMSP WK 2026 Poule
         </div>
         <p className="text-sm text-muted-foreground">
-          Hup Holland Hup — sinds EK &apos;88 niet meer zo mooi in het oranje
+          {t("Hup Holland Hup — sinds EK '88 niet meer zo mooi in het oranje", "Hup Holland Hup — orange hasn't looked this good since Euro '88")}
         </p>
         <p className="pixel-heading text-[0.5rem] text-muted-foreground/60">
           © 2026 · Press start to play

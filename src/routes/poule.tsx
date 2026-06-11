@@ -9,6 +9,7 @@ import { getMatches, getPredictions, savePrediction, getMatchResults, getPartici
 import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard, ShieldCheck, Lock, QrCode, ExternalLink, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import bunqQrAsset from "@/assets/bunq-qr.png.asset.json";
+import { useI18n } from "@/lib/i18n";
 
 const BUNQ_PAYMENT_URL = "https://bunq.me/o/4dChEsL1UTRIGYkF0JiFsf";
 
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/poule")({
 });
 
 function PoulePage() {
+  const { t } = useI18n();
   const [user, setUser] = useState<null | { id: string }>(null);
   const queryClient = useQueryClient();
 
@@ -61,7 +63,7 @@ function PoulePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["predictions"] });
       queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
-      toast.success("Voorspelling opgeslagen!");
+      toast.success(t("Voorspelling opgeslagen!", "Prediction saved!"));
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -71,7 +73,7 @@ function PoulePage() {
     mutationFn: claimPay,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participation-status"] });
-      toast.success("Gemeld! De organisator bevestigt je betaling zo snel mogelijk.");
+      toast.success(t("Gemeld! De organisator bevestigt je betaling zo snel mogelijk.", "Reported! The organiser will confirm your payment as soon as possible."));
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -92,7 +94,7 @@ function PoulePage() {
             DutchMSP WK Poule
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-lg font-medium text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.6)]">
-            Vul je standen in. Aanpassen kan tot 10 minuten voor aanvang.
+            {t("Vul je standen in. Aanpassen kan tot 10 minuten voor aanvang.", "Enter your scores. You can change them until 10 minutes before kick-off.")}
           </p>
         </div>
         <div className="flag-strip" />
@@ -108,13 +110,13 @@ function PoulePage() {
       {!user && (
         <div className="pixel-card mb-8 p-6 text-center">
           <AlertCircle className="mx-auto mb-3 h-8 w-8 text-oranje" />
-          <h3 className="pixel-heading mb-3 text-[0.7rem] text-foreground">Log in om mee te doen</h3>
+          <h3 className="pixel-heading mb-3 text-[0.7rem] text-foreground">{t("Log in om mee te doen", "Log in to join")}</h3>
           <p className="mb-4 text-muted-foreground">
-            Maak een account aan of log in om je voorspellingen door te geven.
+            {t("Maak een account aan of log in om je voorspellingen door te geven.", "Create an account or log in to submit your predictions.")}
           </p>
           <Link to="/auth">
             <Button className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
-              Inloggen / Registreren
+              {t("Inloggen / Registreren", "Log in / Register")}
             </Button>
           </Link>
         </div>
@@ -177,6 +179,7 @@ function ParticipationCard({
   onClaim: () => void;
   isClaiming: boolean;
 }) {
+  const { t } = useI18n();
   const amount = new Intl.NumberFormat("nl-NL", {
     style: "currency",
     currency: participation?.currency || "EUR",
@@ -188,9 +191,9 @@ function ParticipationCard({
         <div className="flex items-center gap-3">
           <ShieldCheck className="h-5 w-5 text-emerald-400" />
           <div>
-            <div className="pixel-heading text-[0.6rem] text-emerald-300">Deelname bevestigd</div>
+            <div className="pixel-heading text-[0.6rem] text-emerald-300">{t("Deelname bevestigd", "Entry confirmed")}</div>
             <div className="mt-1 text-emerald-100">
-              Je betaling is verwerkt. Je kunt voorspellingen invullen tot 10 minuten voor de wedstrijd.
+              {t("Je betaling is verwerkt. Je kunt voorspellingen invullen tot 10 minuten voor de wedstrijd.", "Your payment has been processed. You can enter predictions until 10 minutes before each match.")}
             </div>
           </div>
         </div>
@@ -204,11 +207,9 @@ function ParticipationCard({
         <div className="flex items-start gap-3">
           <HandCoins className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
           <div>
-            <div className="pixel-heading text-[0.6rem] text-gold">Betaling gemeld — wacht op bevestiging</div>
+            <div className="pixel-heading text-[0.6rem] text-gold">{t("Betaling gemeld — wacht op bevestiging", "Payment reported — awaiting confirmation")}</div>
             <div className="mt-2 text-muted-foreground">
-              Je hebt aangegeven dat je de inleg hebt overgemaakt. De organisator controleert dit en
-              activeert je deelname. Je kunt alvast voorspellingen invullen; ze tellen mee zodra je
-              deelname bevestigd is.
+              {t("Je hebt aangegeven dat je de inleg hebt overgemaakt. De organisator controleert dit en activeert je deelname. Je kunt alvast voorspellingen invullen; ze tellen mee zodra je deelname bevestigd is.", "You indicated that you transferred the entry fee. The organiser will verify this and activate your entry. You can already enter predictions; they count once your entry is confirmed.")}
             </div>
             <a
               href={BUNQ_PAYMENT_URL}
@@ -216,7 +217,7 @@ function ParticipationCard({
               rel="noopener noreferrer"
               className="mt-3 inline-flex items-center gap-1.5 text-sm text-oranje-light underline hover:text-oranje"
             >
-              <ExternalLink className="h-3.5 w-3.5" /> Toch nog niet betaald? Open de betaallink
+              <ExternalLink className="h-3.5 w-3.5" /> {t("Toch nog niet betaald? Open de betaallink", "Not paid yet after all? Open the payment link")}
             </a>
           </div>
         </div>
@@ -229,10 +230,9 @@ function ParticipationCard({
       <div className="mx-auto flex max-w-2xl gap-3">
         <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-oranje" />
         <div>
-          <div className="pixel-heading text-[0.65rem] text-oranje">Betaling nodig om mee te spelen</div>
+          <div className="pixel-heading text-[0.65rem] text-oranje">{t("Betaling nodig om mee te spelen", "Payment required to play")}</div>
           <div className="mt-2 text-muted-foreground">
-            Inleg {amount}. Scan de QR-code of open de betaallink, en kom daarna terug naar deze
-            pagina om je betaling te melden.
+            {t(`Inleg ${amount}. Scan de QR-code of open de betaallink, en kom daarna terug naar deze pagina om je betaling te melden.`, `Entry fee ${amount}. Scan the QR code or open the payment link, then come back to this page to report your payment.`)}
           </div>
         </div>
       </div>
@@ -244,12 +244,12 @@ function ParticipationCard({
 
         <div className="flex flex-col items-center">
           <div className="pixel-heading flex items-center justify-center gap-2 text-[0.6rem] text-white">
-            <QrCode className="h-4 w-4 text-oranje" /> Scan met je telefoon
+            <QrCode className="h-4 w-4 text-oranje" /> {t("Scan met je telefoon", "Scan with your phone")}
           </div>
           <p className="mt-2 break-all text-sm text-oranje-light">{BUNQ_PAYMENT_URL}</p>
           <a href={BUNQ_PAYMENT_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block">
             <Button className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
-              <ExternalLink className="mr-2 h-4 w-4" /> Open betaallink
+              <ExternalLink className="mr-2 h-4 w-4" /> {t("Open betaallink", "Open payment link")}
             </Button>
           </a>
         </div>
@@ -259,7 +259,7 @@ function ParticipationCard({
         {isLoggedIn ? (
           <>
             <p className="mb-3 text-muted-foreground">
-              Stap 2: betaald? Meld het hier, dan krijgt de organisator een seintje om je te activeren.
+              {t("Stap 2: betaald? Meld het hier, dan krijgt de organisator een seintje om je te activeren.", "Step 2: paid? Report it here and the organiser gets a heads-up to activate you.")}
             </p>
             <Button
               className="pixel-btn bg-secondary text-foreground hover:bg-accent"
@@ -267,12 +267,12 @@ function ParticipationCard({
               disabled={isClaiming}
             >
               <Check className="mr-2 h-4 w-4" />
-              {isClaiming ? "Bezig..." : "Ik heb betaald"}
+              {isClaiming ? t("Bezig...", "Working...") : t("Ik heb betaald", "I have paid")}
             </Button>
           </>
         ) : (
           <p className="text-muted-foreground">
-            Log in om na het betalen je deelname te melden bij de organisator.
+            {t("Log in om na het betalen je deelname te melden bij de organisator.", "Log in to report your payment to the organiser after paying.")}
           </p>
         )}
       </div>
@@ -291,6 +291,7 @@ function scoreLine(pred: { home_score: number; away_score: number }, result: { h
 }
 
 function MyStandCard({ matches, predictions, results }: { matches: any[]; predictions: any[]; results: any[] }) {
+  const { t } = useI18n();
   const filled = predictions.length;
   const total = matches.length;
 
@@ -307,21 +308,21 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
     <div className="pixel-card mb-8 overflow-hidden p-0">
       <div className="pattern-1988 px-5 py-3">
         <h2 className="pixel-heading flex items-center gap-2 text-[0.65rem] text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
-          <Trophy className="h-4 w-4" /> Mijn stand
+          <Trophy className="h-4 w-4" /> {t("Mijn stand", "My status")}
         </h2>
       </div>
       <div className="grid grid-cols-3 divide-x-2 divide-oranje/30">
         <div className="p-4 text-center">
           <div className="pixel-heading text-base text-foreground">{filled}/{total}</div>
-          <div className="text-sm text-muted-foreground">Voorspeld</div>
+          <div className="text-sm text-muted-foreground">{t("Voorspeld", "Predicted")}</div>
         </div>
         <div className="p-4 text-center">
           <div className="pixel-heading text-base text-oranje">{points}</div>
-          <div className="text-sm text-muted-foreground">Punten</div>
+          <div className="text-sm text-muted-foreground">{t("Punten", "Points")}</div>
         </div>
         <div className="p-4 text-center">
           <div className="pixel-heading text-base text-foreground">{decided}</div>
-          <div className="text-sm text-muted-foreground">Gespeeld</div>
+          <div className="text-sm text-muted-foreground">{t("Gespeeld", "Played")}</div>
         </div>
       </div>
       {matches.length > 0 && (
@@ -339,7 +340,7 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
                   </span>
                   {result && (
                     <span className="text-sm text-muted-foreground">
-                      (uitslag {result.home_score}-{result.away_score})
+                      ({t("uitslag", "result")} {result.home_score}-{result.away_score})
                     </span>
                   )}
                   {earned !== null ? (
@@ -381,6 +382,7 @@ function MatchPredictionCard({
   disabled: boolean;
   pendingApproval: boolean;
 }) {
+  const { t, lang } = useI18n();
   const [homeScore, setHomeScore] = useState<number | "">(
     prediction ? prediction.home_score : ""
   );
@@ -400,7 +402,7 @@ function MatchPredictionCard({
   const matchDate = new Date(match.match_date);
   const lockDate = new Date(matchDate.getTime() - 10 * 60 * 1000);
   const isLocked = lockDate.getTime() <= Date.now();
-  const formattedDate = matchDate.toLocaleDateString("nl-NL", {
+  const formattedDate = matchDate.toLocaleDateString(lang === "en" ? "en-GB" : "nl-NL", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -467,12 +469,12 @@ function MatchPredictionCard({
 
         {disabled ? (
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Log in om je voorspelling in te vullen
+            {t("Log in om je voorspelling in te vullen", "Log in to enter your prediction")}
           </p>
         ) : isLocked ? (
           <p className="mt-4 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
             <Lock className="h-3.5 w-3.5" />
-            Gesloten sinds {formattedLockTime}
+            {t("Gesloten sinds", "Locked since")} {formattedLockTime}
           </p>
         ) : (
           <>
@@ -481,12 +483,12 @@ function MatchPredictionCard({
               onClick={() => onSave(Number(homeScore), Number(awayScore))}
               disabled={isSaving || homeScore === "" || awayScore === "" || !hasChanges || isLocked}
             >
-              {isSaving ? "Opslaan..." : prediction ? "Wijziging opslaan" : "Voorspelling opslaan"}
+              {isSaving ? t("Opslaan...", "Saving...") : prediction ? t("Wijziging opslaan", "Save change") : t("Voorspelling opslaan", "Save prediction")}
             </Button>
             {pendingApproval && (
               <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-sm text-oranje-light">
                 <AlertCircle className="h-3.5 w-3.5" />
-                Telt pas mee zodra de organisator je betaling akkoord geeft
+                {t("Telt pas mee zodra de organisator je betaling akkoord geeft", "Counts once the organiser approves your payment")}
               </p>
             )}
           </>
@@ -500,7 +502,7 @@ function MatchPredictionCard({
         </span>
         <span className="flex items-center gap-1.5">
           <Lock className="h-3 w-3" />
-          Sluit {formattedLockTime}
+          {t("Sluit", "Closes")} {formattedLockTime}
         </span>
       </div>
     </div>

@@ -7,10 +7,12 @@ import { checkIsAdmin } from "@/lib/pool.functions";
 import { Gamepad2, LogOut, User, Trophy, ListOrdered, ShieldCheck, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { useI18n } from "@/lib/i18n";
 
 export function Navbar() {
   const [user, setUser] = useState<null | { id: string; email?: string }>(null);
   const navigate = useNavigate();
+  const { lang, setLang, t } = useI18n();
 
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const { data: adminCheck } = useQuery({
@@ -60,13 +62,13 @@ export function Navbar() {
           <Link to="/leaderboard">
             <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base hover:bg-oranje/20 hover:text-oranje-light">
               <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Klassement</span>
+              <span className="hidden sm:inline">{t("Klassement", "Standings")}</span>
             </Button>
           </Link>
           <Link to="/uitleg">
             <Button variant="ghost" size="sm" className="gap-1.5 rounded-none text-base hover:bg-oranje/20 hover:text-oranje-light">
               <HelpCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Uitleg</span>
+              <span className="hidden sm:inline">{t("Uitleg", "How it works")}</span>
             </Button>
           </Link>
           {adminCheck?.isAdmin && (
@@ -80,6 +82,16 @@ export function Navbar() {
 
           <ThemeSwitcher />
 
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-none text-base font-bold hover:bg-oranje/20 hover:text-oranje-light"
+            onClick={() => setLang(lang === "nl" ? "en" : "nl")}
+            aria-label={t("Switch to English", "Schakel naar Nederlands")}
+          >
+            {lang === "nl" ? "EN" : "NL"}
+          </Button>
+
           {user ? (
             <Button
               variant="ghost"
@@ -88,13 +100,13 @@ export function Navbar() {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Uitloggen</span>
+              <span className="hidden sm:inline">{t("Uitloggen", "Log out")}</span>
             </Button>
           ) : (
             <Link to="/auth">
               <Button size="sm" className="pixel-btn gap-1.5 bg-oranje text-primary-foreground hover:bg-oranje-dark">
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Inloggen</span>
+                <span className="hidden sm:inline">{t("Inloggen", "Log in")}</span>
               </Button>
             </Link>
           )}

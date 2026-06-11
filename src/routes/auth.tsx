@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Gamepad2, Trophy, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -32,6 +33,7 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 function AuthPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -41,7 +43,7 @@ function AuthPage() {
 
   const handleSignUp = async () => {
     if (!email || !password || !displayName) {
-      toast.error("Vul alle velden in");
+      toast.error(t("Vul alle velden in", "Fill in all fields"));
       return;
     }
     setLoading(true);
@@ -52,12 +54,12 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else toast.success("Account aangemaakt! Check je e-mail om te bevestigen.");
+    else toast.success(t("Account aangemaakt! Check je e-mail om te bevestigen.", "Account created! Check your email to confirm."));
   };
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      toast.error("Vul e-mail en wachtwoord in");
+      toast.error(t("Vul e-mail en wachtwoord in", "Enter email and password"));
       return;
     }
     setLoading(true);
@@ -65,7 +67,7 @@ function AuthPage() {
     setLoading(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Ingelogd!");
+      toast.success(t("Ingelogd!", "Logged in!"));
       navigate({ to: "/poule" });
     }
   };
@@ -98,10 +100,10 @@ function AuthPage() {
                   DutchMSP Poule
                 </div>
                 <h1 className="pixel-heading text-lg leading-relaxed">
-                  Log in en vul je WK-voorspellingen in.
+                  {t("Log in en vul je WK-voorspellingen in.", "Log in and enter your World Cup predictions.")}
                 </h1>
                 <p className="mt-4 text-lg font-medium">
-                  Eén account voor je voorspellingen, punten en klassement.
+                  {t("Eén account voor je voorspellingen, punten en klassement.", "One account for your predictions, points and standings.")}
                 </p>
               </div>
               <div className="border-[3px] border-white/60 bg-navy/70 p-5 backdrop-blur">
@@ -110,7 +112,7 @@ function AuthPage() {
                   DutchMSP WK Poule
                 </div>
                 <p className="text-white/90">
-                  Betaal via de QR-code op de poulepagina en speel mee zodra je deelname bevestigd is.
+                  {t("Betaal via de QR-code op de poulepagina en speel mee zodra je deelname bevestigd is.", "Pay via the QR code on the pool page and play as soon as your entry is confirmed.")}
                 </p>
               </div>
             </div>
@@ -126,9 +128,9 @@ function AuthPage() {
               </div>
             </div>
 
-            <h1 className="pixel-heading text-lg text-foreground sm:text-xl">Inloggen</h1>
+            <h1 className="pixel-heading text-lg text-foreground sm:text-xl">{t("Inloggen", "Log in")}</h1>
             <p className="mt-3 text-muted-foreground">
-              Log in met Google of Apple. Na inloggen ga je direct naar de poule.
+              {t("Log in met Google of Apple. Na inloggen ga je direct naar de poule.", "Log in with Google or Apple. After logging in you go straight to the pool.")}
             </p>
 
             <div className="mt-7 space-y-4">
@@ -138,7 +140,7 @@ function AuthPage() {
                 className="pixel-btn flex w-full items-center justify-center gap-3 bg-oranje px-4 py-3.5 text-primary-foreground transition hover:bg-oranje-dark disabled:opacity-60"
               >
                 <GoogleIcon className="h-5 w-5 rounded-full bg-white" />
-                Inloggen met Google
+                {t("Inloggen met Google", "Log in with Google")}
               </button>
               <button
                 onClick={() => handleOAuth("apple")}
@@ -146,7 +148,7 @@ function AuthPage() {
                 className="pixel-btn flex w-full items-center justify-center gap-3 bg-secondary px-4 py-3.5 text-foreground transition hover:bg-accent disabled:opacity-60"
               >
                 <AppleIcon className="h-5 w-5" />
-                Inloggen met Apple
+                {t("Inloggen met Apple", "Log in with Apple")}
               </button>
             </div>
 
@@ -157,7 +159,7 @@ function AuthPage() {
                   className="inline-flex items-center gap-2 text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
                 >
                   <Mail className="h-4 w-4" />
-                  Of log in met e-mail en wachtwoord
+                  {t("Of log in met e-mail en wachtwoord", "Or log in with email and password")}
                 </button>
               </div>
             )}
@@ -166,14 +168,14 @@ function AuthPage() {
             <>
             <div className="my-7 flex items-center gap-4">
               <div className="h-px flex-1 bg-border" />
-              <span className="pixel-heading text-[0.55rem] text-muted-foreground">met e-mail</span>
+              <span className="pixel-heading text-[0.55rem] text-muted-foreground">{t("met e-mail", "with email")}</span>
               <div className="h-px flex-1 bg-border" />
             </div>
 
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid h-11 w-full grid-cols-2 rounded-none border-2 border-oranje/40 bg-muted p-1">
-                <TabsTrigger value="login" className="rounded-none">Inloggen</TabsTrigger>
-                <TabsTrigger value="register" className="rounded-none">Registreren</TabsTrigger>
+                <TabsTrigger value="login" className="rounded-none">{t("Inloggen", "Log in")}</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-none">{t("Registreren", "Register")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="space-y-4 pt-5">
@@ -182,29 +184,29 @@ function AuthPage() {
                   <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <div>
-                  <Label htmlFor="password">Wachtwoord</Label>
+                  <Label htmlFor="password">{t("Wachtwoord", "Password")}</Label>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <Button className="pixel-btn h-11 w-full bg-navy-light text-foreground hover:bg-secondary" onClick={handleSignIn} disabled={loading}>
-                  {loading ? "Bezig..." : "Inloggen"}
+                  {loading ? t("Bezig...", "Working...") : t("Inloggen", "Log in")}
                 </Button>
               </TabsContent>
 
               <TabsContent value="register" className="space-y-4 pt-5">
                 <div>
-                  <Label htmlFor="name">Naam</Label>
-                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Je naam" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
+                  <Label htmlFor="name">{t("Naam", "Name")}</Label>
+                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t("Je naam", "Your name")} className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <div>
                   <Label htmlFor="email-reg">E-mail</Label>
                   <Input id="email-reg" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <div>
-                  <Label htmlFor="password-reg">Wachtwoord</Label>
+                  <Label htmlFor="password-reg">{t("Wachtwoord", "Password")}</Label>
                   <Input id="password-reg" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11 rounded-none border-2 border-oranje/40" />
                 </div>
                 <Button className="pixel-btn h-11 w-full bg-oranje text-primary-foreground hover:bg-oranje-dark" onClick={handleSignUp} disabled={loading}>
-                  {loading ? "Bezig..." : "Account aanmaken"}
+                  {loading ? t("Bezig...", "Working...") : t("Account aanmaken", "Create account")}
                 </Button>
               </TabsContent>
             </Tabs>
@@ -214,7 +216,7 @@ function AuthPage() {
             <div className="mt-8 text-center">
               <Link to="/" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" />
-                Terug naar home
+                {t("Terug naar home", "Back to home")}
               </Link>
             </div>
           </div>

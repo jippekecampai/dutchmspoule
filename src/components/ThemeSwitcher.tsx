@@ -3,8 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { Palette, Check, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { THEMES, getStoredTheme, applyTheme, type ThemeId } from "@/lib/theme";
+import { useI18n } from "@/lib/i18n";
 
 export function ThemeSwitcher() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeId>("oranje");
   const ref = useRef<HTMLDivElement>(null);
@@ -38,19 +40,19 @@ export function ThemeSwitcher() {
         aria-label="Kies thema"
       >
         <Palette className="h-4 w-4" />
-        <span className="hidden sm:inline">Thema</span>
+        <span className="hidden sm:inline">{t("Thema", "Theme")}</span>
       </Button>
       {open && (
         <div className="pixel-card absolute right-0 z-50 mt-2 w-52 p-1">
-          {THEMES.map((t) => (
+          {THEMES.map((option) => (
             <button
-              key={t.id}
+              key={option.id}
               type="button"
-              onClick={() => select(t.id)}
+              onClick={() => select(option.id)}
               className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-oranje/15"
             >
-              <span className="text-foreground">{t.label}</span>
-              {theme === t.id && <Check className="h-4 w-4 shrink-0 text-oranje" />}
+              <span className="text-foreground">{option.label}</span>
+              {theme === option.id && <Check className="h-4 w-4 shrink-0 text-oranje" />}
             </button>
           ))}
           <div className="my-1 border-t border-oranje/20" />
@@ -60,7 +62,7 @@ export function ThemeSwitcher() {
             className="flex w-full items-center gap-2 px-3 py-2 text-left text-oranje hover:bg-oranje/15"
           >
             <Sliders className="h-4 w-4 shrink-0" />
-            Eigen kleuren…
+            {t("Eigen kleuren…", "Custom colours…")}
           </Link>
         </div>
       )}
