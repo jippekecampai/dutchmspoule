@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getLeaderboard, getMatches, getMatchResults, getRevealedPredictions } from "@/lib/pool.functions";
+import { getLeaderboard, getMatches, getMatchResults } from "@/lib/pool.functions";
 import { Trophy, Medal, Crown, Target } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -12,7 +12,6 @@ function LeaderboardPage() {
   const fetchLeaderboard = useServerFn(getLeaderboard);
   const fetchMatches = useServerFn(getMatches);
   const fetchResults = useServerFn(getMatchResults);
-  const fetchAllPreds = useServerFn(getRevealedPredictions);
 
   const { data: leaderboard, isLoading: lbLoading } = useQuery({
     queryKey: ["leaderboard"],
@@ -29,11 +28,6 @@ function LeaderboardPage() {
     queryFn: fetchResults,
   });
 
-  const { data: allPredictions } = useQuery({
-    queryKey: ["revealed_predictions"],
-    queryFn: fetchAllPreds,
-  });
-
   const matchesMap = new Map((matches || []).map((m) => [m.id, m]));
 
   return (
@@ -45,6 +39,11 @@ function LeaderboardPage() {
         <p className="mt-3 text-lg text-muted-foreground">
           Wie voorspelt de uitslagen het beste?
         </p>
+        {(results || []).length === 0 && (
+          <p className="mt-1 text-sm text-muted-foreground/70">
+            Nog geen wedstrijden gespeeld — punten verschijnen na de eerste uitslag.
+          </p>
+        )}
       </div>
 
       {/* Prize info */}
@@ -129,8 +128,7 @@ function LeaderboardPage() {
                 <div className="flex-1">
                   <div className="font-bold text-foreground">{entry.display_name}</div>
                   <div className="text-sm text-muted-foreground">
-                    {(allPredictions || []).filter((p: { user_id: string }) => p.user_id === entry.user_id).length}{" "}
-                    voorspellingen ingediend
+                    {entry.predictions_count} voorspelling{entry.predictions_count !== 1 ? "en" : ""} ingediend
                   </div>
                 </div>
                 <div className="text-right">

@@ -442,9 +442,13 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   const paidUserIds = new Set((paidRows || []).map((p) => p.user_id));
 
   const scoreMap = new Map<string, number>();
+  // Aantal ingediende voorspellingen per speler; de scores zelf blijven
+  // verborgen tot de wedstrijd een uitslag heeft.
+  const predictionCountMap = new Map<string, number>();
 
   for (const pred of predictions || []) {
     if (!paidUserIds.has(pred.user_id)) continue;
+    predictionCountMap.set(pred.user_id, (predictionCountMap.get(pred.user_id) || 0) + 1);
     const result = (results || []).find((r) => r.match_id === pred.match_id);
     if (!result) continue;
 
@@ -473,6 +477,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
       display_name: p.display_name,
       avatar_url: p.avatar_url,
       points: scoreMap.get(p.id) || 0,
+      predictions_count: predictionCountMap.get(p.id) || 0,
     }))
     .sort((a, b) => b.points - a.points);
 
