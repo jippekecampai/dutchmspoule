@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Trophy, Shield, Calendar, Users, ChevronRight, Gamepad2, CreditCard, Lock, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RetroGameIntro, type PredictedScore } from "@/components/RetroGameIntro";
+import { PlayableGame } from "@/components/PlayableGame";
 import { supabase } from "@/integrations/supabase/client";
 import { getMatches, getPredictions } from "@/lib/pool.functions";
 
