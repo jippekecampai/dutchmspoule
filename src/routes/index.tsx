@@ -71,13 +71,25 @@ function Index() {
             Log in, betaal je deelname en voorspel de standen. Wijzigingen sluiten automatisch 10 minuten voor aftrap.
           </p>
 
-          {/* Arcade-scherm: 8-bit demo door de drie groepswedstrijden */}
-          <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
-            <RetroGameIntro className="block aspect-video w-full" predictions={predictedScores} />
-          </div>
-          <p className="pixel-heading blink mb-8 text-[0.6rem] text-oranje-light">
-            {predictedScores ? "Met jouw voorspellingen" : "Press start to play"}
-          </p>
+          {/* Arcade-scherm: 8-bit demo of speelbaar mini-spelletje */}
+          {playing ? (
+            <div className="mx-auto mb-8 max-w-2xl">
+              <PlayableGame onExit={() => setPlaying(false)} />
+            </div>
+          ) : (
+            <>
+              <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
+                <RetroGameIntro className="block aspect-video w-full" predictions={predictedScores} />
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlaying(true)}
+                className="pixel-heading blink mb-8 text-[0.6rem] text-oranje-light hover:text-oranje"
+              >
+                {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
+              </button>
+            </>
+          )}
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link to="/poule">
