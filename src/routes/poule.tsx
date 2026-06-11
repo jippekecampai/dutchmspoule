@@ -180,7 +180,7 @@ function ParticipationCard({
   const amount = new Intl.NumberFormat("nl-NL", {
     style: "currency",
     currency: participation?.currency || "EUR",
-  }).format((participation?.amountCents || 1000) / 100);
+  }).format((participation?.amountCents || 1500) / 100);
 
   if (participation?.isPaid) {
     return (
@@ -280,6 +280,16 @@ function ParticipationCard({
   );
 }
 
+// Puntentelling, gelijk aan de server: exacte uitslag = 3, juiste uitkomst = 1.
+const POINTS_EXACT = 3;
+const POINTS_OUTCOME = 1;
+function scoreLine(pred: { home_score: number; away_score: number }, result: { home_score: number; away_score: number }) {
+  if (pred.home_score === result.home_score && pred.away_score === result.away_score) return POINTS_EXACT;
+  return Math.sign(pred.home_score - pred.away_score) === Math.sign(result.home_score - result.away_score)
+    ? POINTS_OUTCOME
+    : 0;
+}
+
 function MyStandCard({ matches, predictions, results }: { matches: any[]; predictions: any[]; results: any[] }) {
   const filled = predictions.length;
   const total = matches.length;
@@ -290,13 +300,7 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
     const result = results.find((r) => r.match_id === pred.match_id);
     if (!result) continue;
     decided++;
-    const pHome = pred.home_score > pred.away_score;
-    const pAway = pred.home_score < pred.away_score;
-    const pDraw = pred.home_score === pred.away_score;
-    const rHome = result.home_score > result.away_score;
-    const rAway = result.home_score < result.away_score;
-    const rDraw = result.home_score === result.away_score;
-    if ((pHome && rHome) || (pAway && rAway) || (pDraw && rDraw)) points++;
+    points += scoreLine(pred, result);
   }
 
   return (
@@ -325,16 +329,7 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
           {matches.map((m) => {
             const pred = predictions.find((p) => p.match_id === m.id);
             const result = results.find((r) => r.match_id === m.id);
-            let status: "correct" | "wrong" | "pending" | "empty" = "empty";
-            if (pred && result) {
-              const pHome = pred.home_score > pred.away_score;
-              const pAway = pred.home_score < pred.away_score;
-              const pDraw = pred.home_score === pred.away_score;
-              const rHome = result.home_score > result.away_score;
-              const rAway = result.home_score < result.away_score;
-              const rDraw = result.home_score === result.away_score;
-              status = (pHome && rHome) || (pAway && rAway) || (pDraw && rDraw) ? "correct" : "wrong";
-            } else if (pred) status = "pending";
+            const earned = pred && result ? scoreLine(pred, result) : null;
             return (
               <li key={m.id} className="flex items-center justify-between gap-3 px-5 py-3">
                 <span className="truncate text-foreground">{m.home_team} – {m.away_team}</span>
@@ -347,9 +342,20 @@ function MyStandCard({ matches, predictions, results }: { matches: any[]; predic
                       (uitslag {result.home_score}-{result.away_score})
                     </span>
                   )}
-                  {status === "correct" && <Check className="h-4 w-4 text-green-500" />}
-                  {status === "wrong" && <X className="h-4 w-4 text-destructive" />}
-                  {status === "pending" && <CircleDashed className="h-4 w-4 text-muted-foreground" />}
+                  {earned !== null ? (
+                    <span
+                      className={`pixel-heading text-[0.55rem] ${
+                        earned > 0 ? "text-oranje" : "text-muted-foreground"
+                      }`}
+                    >
+                      +{earned}
+                    </span>
+                  ) : pred ? (
+                    <CircleDashed className="h-4 w-4 text-muted-foreground" />
+                  ) : null}
+                  {earned === POINTS_EXACT && <Check className="h-4 w-4 text-green-500" />}
+                  {earned === POINTS_OUTCOME && <Check className="h-4 w-4 text-oranje" />}
+                  {earned === 0 && <X className="h-4 w-4 text-destructive" />}
                 </span>
               </li>
             );

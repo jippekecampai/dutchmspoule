@@ -19,6 +19,22 @@ const PaymentStatusSchema = z.object({
 
 const PREDICTION_LOCK_MINUTES = 10;
 
+// Puntentelling: exacte uitslag levert 3 punten op, een juiste uitkomst
+// (winst thuis / gelijk / winst uit) zonder exacte score 1 punt.
+export const POINTS_EXACT = 3;
+export const POINTS_OUTCOME = 1;
+
+type ScoreLike = { home_score: number; away_score: number };
+
+export function scorePrediction(pred: ScoreLike, result: ScoreLike): number {
+  if (pred.home_score === result.home_score && pred.away_score === result.away_score) {
+    return POINTS_EXACT;
+  }
+  const predOutcome = Math.sign(pred.home_score - pred.away_score);
+  const resOutcome = Math.sign(result.home_score - result.away_score);
+  return predOutcome === resOutcome ? POINTS_OUTCOME : 0;
+}
+
 // Deze accounts krijgen automatisch adminrechten bij hun eerste bezoek.
 const ADMIN_EMAILS = ["janneke@campai.nl", "jippeke98@gmail.com"];
 
@@ -452,21 +468,9 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     const result = (results || []).find((r) => r.match_id === pred.match_id);
     if (!result) continue;
 
-    const predHomeWins = pred.home_score > pred.away_score;
-    const predAwayWins = pred.home_score < pred.away_score;
-    const predDraw = pred.home_score === pred.away_score;
-
-    const resHomeWins = result.home_score > result.away_score;
-    const resAwayWins = result.home_score < result.away_score;
-    const resDraw = result.home_score === result.away_score;
-
-    const correct =
-      (predHomeWins && resHomeWins) ||
-      (predAwayWins && resAwayWins) ||
-      (predDraw && resDraw);
-
-    if (correct) {
-      scoreMap.set(pred.user_id, (scoreMap.get(pred.user_id) || 0) + 1);
+    const gained = scorePrediction(pred, result);
+    if (gained > 0) {
+      scoreMap.set(pred.user_id, (scoreMap.get(pred.user_id) || 0) + gained);
     }
   }
 

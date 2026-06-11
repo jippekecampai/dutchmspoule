@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { getServerConfig } from "./config.server";
 
-export const ENTRY_FEE_CENTS = 1000;
+export const ENTRY_FEE_CENTS = 1500;
 export const ENTRY_FEE_CURRENCY = "eur";
 
 export function getStripeClient() {
