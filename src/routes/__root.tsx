@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { applyCustomColors, getStoredCustom } from "@/lib/theme";
 
@@ -149,6 +150,7 @@ function RootComponent() {
         </div>
         <Footer />
       </div>
+      <FeedbackButton />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );

@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment } from "@/lib/pool.functions";
-import { Save, Lock, CreditCard, CheckCircle2, XCircle, HandCoins } from "lucide-react";
+import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment, getFeedback, setFeedbackStatus } from "@/lib/pool.functions";
+import { Save, Lock, CreditCard, CheckCircle2, XCircle, HandCoins, MessageSquare, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -42,6 +42,26 @@ function AdminPage() {
     queryFn: fetchParticipants,
     enabled: !!adminCheck?.isAdmin,
   });
+
+  const fetchFeedback = useServerFn(getFeedback);
+  const updateFeedback = useServerFn(setFeedbackStatus);
+  const { data: feedback } = useQuery({
+    queryKey: ["feedback"],
+    queryFn: fetchFeedback,
+    enabled: !!adminCheck?.isAdmin,
+  });
+
+  const feedbackMutation = useMutation({
+    mutationFn: updateFeedback,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feedback"] });
+      toast.success("Opmerking bijgewerkt");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const openFeedback = (feedback || []).filter((f) => f.status === "open");
+  const doneFeedback = (feedback || []).filter((f) => f.status === "done");
 
   const resultsMap = new Map((results || []).map((r) => [r.match_id, r]));
 
@@ -169,6 +189,59 @@ function AdminPage() {
             </div>
           </div>
 
+          <div className="pixel-card mb-8 overflow-hidden p-0">
+            <div className="pattern-1988 px-5 py-3">
+              <h2 className="pixel-heading flex items-center gap-2 text-[0.65rem] text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+                <MessageSquare className="h-5 w-5" />
+                Opmerkingen &amp; vragen
+                {openFeedback.length > 0 && (
+                  <span className="ml-1 border border-white/60 bg-black/30 px-2 py-0.5">
+                    {openFeedback.length} open
+                  </span>
+                )}
+              </h2>
+            </div>
+            <div className="p-5">
+              {(feedback || []).length === 0 ? (
+                <p className="text-muted-foreground">
+                  Nog geen opmerkingen. Deelnemers kunnen ze insturen via de knop rechtsonder op de site.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {openFeedback.map((item) => (
+                    <FeedbackRow
+                      key={item.id}
+                      item={item}
+                      busy={feedbackMutation.isPending}
+                      onToggle={() =>
+                        feedbackMutation.mutate({ data: { id: item.id, status: "done" } })
+                      }
+                    />
+                  ))}
+                  {doneFeedback.length > 0 && (
+                    <details>
+                      <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                        Afgehandeld ({doneFeedback.length})
+                      </summary>
+                      <div className="mt-3 space-y-4">
+                        {doneFeedback.map((item) => (
+                          <FeedbackRow
+                            key={item.id}
+                            item={item}
+                            busy={feedbackMutation.isPending}
+                            onToggle={() =>
+                              feedbackMutation.mutate({ data: { id: item.id, status: "open" } })
+                            }
+                          />
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-6">
             {(matches || []).map((match) => (
               <ResultCard
@@ -193,6 +266,60 @@ function AdminPage() {
         </Link>
       </p>
     </main>
+  );
+}
+
+function FeedbackRow({
+  item,
+  busy,
+  onToggle,
+}: {
+  item: { id: string; display_name: string; message: string; status: string; created_at: string };
+  busy: boolean;
+  onToggle: () => void;
+}) {
+  const isDone = item.status === "done";
+  const when = new Date(item.created_at).toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return (
+    <div
+      className={`flex flex-col gap-3 border-2 p-4 sm:flex-row sm:items-start sm:justify-between ${
+        isDone ? "border-border opacity-70" : "border-oranje/40"
+      }`}
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-bold text-foreground">{item.display_name}</span>
+          <span className="text-sm text-muted-foreground">{when}</span>
+        </div>
+        <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{item.message}</p>
+      </div>
+      <Button
+        size="sm"
+        className={`pixel-btn shrink-0 ${
+          isDone
+            ? "bg-secondary text-foreground hover:bg-accent"
+            : "bg-oranje text-primary-foreground hover:bg-oranje-dark"
+        }`}
+        disabled={busy}
+        onClick={onToggle}
+      >
+        {isDone ? (
+          <>
+            <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Heropen
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Afgehandeld
+          </>
+        )}
+      </Button>
+    </div>
   );
 }
 
