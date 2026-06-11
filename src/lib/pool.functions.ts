@@ -433,8 +433,32 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
     return { isAdmin: true };
   });
 
-export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
-  const { data: predictions, error: predError } = await supabaseAdmin
+const ParticipantNameSchema = z.object({
+  user_id: z.string().uuid(),
+  display_name: z.string().trim().min(1, "Vul een naam in.").max(40),
+});
+
+// Admin kan de weergavenaam van een deelnemer rechtzetten — handig wanneer
+// OAuth (m.n. Apple private relay) alleen een onleesbare e-mailprefix oplevert.
+export const setParticipantName = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => ParticipantNameSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Alleen admins kunnen namen aanpassen.");
+
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .upsert({ id: data.user_id, display_name: data.display_name }, { onConflict: "id" });
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {  const { data: predictions, error: predError } = await supabaseAdmin
     .from("predictions")
     .select("user_id, match_id, home_score, away_score");
   if (predError) throw new Error(predError.message);

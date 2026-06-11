@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment, getFeedback, setFeedbackStatus } from "@/lib/pool.functions";
-import { Save, Lock, CreditCard, CheckCircle2, XCircle, HandCoins, MessageSquare, Undo2 } from "lucide-react";
+import { getMatches, getMatchResults, saveMatchResult, checkIsAdmin, getParticipantPayments, markParticipantPayment, getFeedback, setFeedbackStatus, setParticipantName } from "@/lib/pool.functions";
+import { Save, Lock, CreditCard, CheckCircle2, XCircle, HandCoins, MessageSquare, Undo2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -49,6 +49,18 @@ function AdminPage() {
     queryKey: ["feedback"],
     queryFn: fetchFeedback,
     enabled: !!adminCheck?.isAdmin,
+  });
+
+  const updateName = useServerFn(setParticipantName);
+  const nameMutation = useMutation({
+    mutationFn: updateName,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["participant_payments"] });
+      queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["feedback"] });
+      toast.success("Naam bijgewerkt");
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   const feedbackMutation = useMutation({
@@ -136,7 +148,15 @@ function AdminPage() {
                         }`}
                       >
                         <div>
-                          <div className="font-bold text-foreground">{participant.display_name}</div>
+                          <EditableName
+                            name={participant.display_name}
+                            busy={nameMutation.isPending}
+                            onSave={(name) =>
+                              nameMutation.mutate({
+                                data: { user_id: participant.user_id, display_name: name },
+                              })
+                            }
+                          />
                           {participant.email && (
                             <div className="break-all text-sm text-muted-foreground">{participant.email}</div>
                           )}
@@ -266,6 +286,68 @@ function AdminPage() {
         </Link>
       </p>
     </main>
+  );
+}
+
+function EditableName({
+  name,
+  busy,
+  onSave,
+}: {
+  name: string;
+  busy: boolean;
+  onSave: (name: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="font-bold text-foreground">{name}</span>
+        <button
+          type="button"
+          aria-label="Naam aanpassen"
+          className="text-muted-foreground hover:text-oranje"
+          onClick={() => {
+            setValue(name);
+            setEditing(true);
+          }}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  const save = () => {
+    const trimmed = value.trim();
+    if (trimmed && trimmed !== name) onSave(trimmed);
+    setEditing(false);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        value={value}
+        autoFocus
+        maxLength={40}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") setEditing(false);
+        }}
+        className="h-8 w-44 rounded-none border-2 border-oranje/60"
+      />
+      <Button
+        size="sm"
+        className="pixel-btn h-8 bg-oranje px-2.5 text-primary-foreground hover:bg-oranje-dark"
+        disabled={busy}
+        onClick={save}
+      >
+        OK
+      </Button>
+    </div>
   );
 }
 
