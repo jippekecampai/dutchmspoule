@@ -10,7 +10,7 @@ import { Trophy, Clock, MapPin, AlertCircle, Check, X, CircleDashed, CreditCard,
 import { toast } from "sonner";
 import bunqQrAsset from "@/assets/bunq-qr.png.asset.json";
 
-const BUNQ_PAYMENT_URL = "https://bunq.me/mspwkpoule";
+const BUNQ_PAYMENT_URL = "https://bunq.me/o/4dChEsL1UTRIGYkF0JiFsf";
 
 export const Route = createFileRoute("/poule")({
   component: PoulePage,
