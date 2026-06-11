@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Palette, Check } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Palette, Check, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { THEMES, getStoredTheme, applyTheme, type ThemeId } from "@/lib/theme";
 
@@ -52,6 +53,15 @@ export function ThemeSwitcher() {
               {theme === t.id && <Check className="h-4 w-4 shrink-0 text-oranje" />}
             </button>
           ))}
+          <div className="my-1 border-t border-oranje/20" />
+          <Link
+            to="/thema"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-oranje hover:bg-oranje/15"
+          >
+            <Sliders className="h-4 w-4 shrink-0" />
+            Eigen kleuren…
+          </Link>
         </div>
       )}
     </div>

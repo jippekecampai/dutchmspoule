@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { applyCustomColors, getStoredCustom } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -118,7 +119,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('dutchmsp-theme');if(t&&['oranje','reinier','roland'].indexOf(t)>=0){document.documentElement.setAttribute('data-theme',t);}}catch(e){}",
+              "try{var t=localStorage.getItem('dutchmsp-theme');if(t&&['oranje','reinier','roland'].indexOf(t)>=0){document.documentElement.setAttribute('data-theme',t);}var c=localStorage.getItem('dutchmsp-custom-colors');if(c){var o=JSON.parse(c),s=document.documentElement.style;if(o.accent){s.setProperty('--oranje',o.accent);s.setProperty('--primary',o.accent);s.setProperty('--ring',o.accent);}if(o.background){s.setProperty('--background',o.background);}}}catch(e){}",
           }}
         />
       </head>
@@ -132,6 +133,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Vul de afgeleide accent-tinten (light/dark) aan na hydratie; het inline
+  // script in <head> zet alleen de hoofdkleur om een flits te voorkomen.
+  useEffect(() => {
+    applyCustomColors(getStoredCustom());
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UitlegRouteImport } from './routes/uitleg'
+import { Route as ThemaRouteImport } from './routes/thema'
 import { Route as PouleRouteImport } from './routes/poule'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -20,6 +21,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 const UitlegRoute = UitlegRouteImport.update({
   id: '/uitleg',
   path: '/uitleg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThemaRoute = ThemaRouteImport.update({
+  id: '/thema',
+  path: '/thema',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PouleRoute = PouleRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/thema': typeof ThemaRoute
   '/uitleg': typeof UitlegRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/thema': typeof ThemaRoute
   '/uitleg': typeof UitlegRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
   '/poule': typeof PouleRoute
+  '/thema': typeof ThemaRoute
   '/uitleg': typeof UitlegRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/leaderboard'
     | '/poule'
+    | '/thema'
     | '/uitleg'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/leaderboard'
     | '/poule'
+    | '/thema'
     | '/uitleg'
     | '/api/public/payments/webhook'
   id:
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/leaderboard'
     | '/poule'
+    | '/thema'
     | '/uitleg'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PouleRoute: typeof PouleRoute
+  ThemaRoute: typeof ThemaRoute
   UitlegRoute: typeof UitlegRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/uitleg'
       fullPath: '/uitleg'
       preLoaderRoute: typeof UitlegRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/thema': {
+      id: '/thema'
+      path: '/thema'
+      fullPath: '/thema'
+      preLoaderRoute: typeof ThemaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/poule': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   LeaderboardRoute: LeaderboardRoute,
   PouleRoute: PouleRoute,
+  ThemaRoute: ThemaRoute,
   UitlegRoute: UitlegRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
