@@ -111,7 +111,7 @@ function Index() {
             <span className="text-oranje">WK Poule</span>
           </h1>
           <p className="mx-auto mb-8 max-w-xl text-xl text-muted-foreground">
-            Log in, betaal je deelname en voorspel de standen. Wijzigingen sluiten automatisch 10 minuten voor aftrap.
+            Voorspel de standen van Oranje op het WK, sprokkel punten bij elke wedstrijd en strijd mee om de pot. Wie kent het Nederlands elftal het best?
           </p>
 
           {/* Arcade-scherm: 8-bit demo of speelbaar mini-spelletje */}
@@ -172,18 +172,18 @@ function Index() {
         <div className="grid gap-6 sm:grid-cols-3">
           <FeatureCard
             icon={<CreditCard className="h-5 w-5 text-oranje" />}
-            title="Betaalde deelname"
-            description="Alleen bevestigde deelnemers kunnen voorspellingen opslaan."
+            title="Eén keer inleggen"
+            description="Leg eenmalig in en speel het hele toernooi mee om de prijzenpot."
           />
           <FeatureCard
             icon={<Lock className="h-5 w-5 text-oranje" />}
-            title="Deadline per wedstrijd"
-            description="Inzendingen worden 10 minuten voor aanvang vergrendeld."
+            title="Eerlijk spel"
+            description="Je voorspelling staat vast vanaf 10 minuten voor de aftrap — niemand kan nog gluren."
           />
           <FeatureCard
             icon={<ListChecks className="h-5 w-5 text-oranje" />}
-            title="Controleerbare ranglijst"
-            description="Punten en uitslagen blijven centraal zichtbaar na gespeelde wedstrijden."
+            title="Altijd zicht op de stand"
+            description="Na elke wedstrijd zie je meteen hoe je ervoor staat tegenover de rest."
           />
         </div>
       </section>
@@ -230,18 +230,18 @@ function Index() {
           <div className="grid gap-6 sm:grid-cols-3">
             <StepCard
               icon={<Shield className="h-6 w-6 text-oranje" />}
-              title="1. Login en betaal"
-              description="Maak een account aan. Je deelname wordt actief na bevestigde betaling."
+              title="1. Doe mee"
+              description="Maak je account, leg in en je speelt het hele WK mee."
             />
             <StepCard
               icon={<Calendar className="h-6 w-6 text-oranje" />}
-              title="2. Vul standen in"
-              description="Voorspel per wedstrijd de exacte stand en pas aan tot 10 minuten voor aftrap."
+              title="2. Voorspel de standen"
+              description="Tik per wedstrijd je uitslag in — aanpassen kan tot vlak voor de aftrap."
             />
             <StepCard
               icon={<Trophy className="h-6 w-6 text-oranje" />}
-              title="3. Volg de ranglijst"
-              description="Na uitslagen wordt het klassement bijgewerkt en blijven voorspellingen controleerbaar."
+              title="3. Klim in de ranglijst"
+              description="Punten tikken binnen na elke wedstrijd. Hou de top — en de pot — in de gaten."
             />
           </div>
         </div>
@@ -253,7 +253,7 @@ function Index() {
           Klaar om mee te doen?
         </h2>
         <p className="mb-8 text-lg text-muted-foreground">
-          Log in, regel je deelname en vul je voorspellingen op tijd in.
+          Pak je plek in de poule en laat zien dat jij Oranje het best aanvoelt.
         </p>
         <Link to="/poule">
           <Button size="lg" className="pixel-btn bg-oranje text-primary-foreground hover:bg-oranje-dark">
