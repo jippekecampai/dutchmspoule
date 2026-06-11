@@ -81,13 +81,23 @@ function Index() {
               <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
                 <RetroGameIntro className="block aspect-video w-full" predictions={predictedScores} />
               </div>
-              <button
-                type="button"
-                onClick={() => setPlaying(true)}
-                className="pixel-heading blink mb-8 text-[0.6rem] text-oranje-light hover:text-oranje"
-              >
-                {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
-              </button>
+              <div className="mb-8 flex flex-col items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPlaying(true)}
+                  className="pixel-btn bg-oranje px-6 py-3 text-primary-foreground shadow-[4px_4px_0_0_rgb(0_0_0/0.6)] hover:bg-oranje-dark"
+                >
+                  ▶ SPEEL HET SPELLETJE
+                </button>
+                <p className="pixel-heading blink text-[0.55rem] text-oranje-light">
+                  {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
+                </p>
+                <p className="max-w-md text-xs text-muted-foreground">
+                  Klik op de knop om een mini-wedstrijd te spelen: 2× 1 minuut met 5 seconden rust.
+                  Besturing: pijltjes of WASD om te bewegen, spatie om te schieten. Op mobiel verschijnt
+                  een D-pad en een SHOOT-knop. Druk in het spel op <strong>START WEDSTRIJD</strong> om te beginnen.
+                </p>
+              </div>
             </>
           )}
 
