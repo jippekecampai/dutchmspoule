@@ -226,10 +226,11 @@ export function PlayableGame({
           s.ballV.x = 0;
           s.ballV.y = 0;
 
-          // Schieten
+          // Schieten — richt op het doel waar NED naar toe speelt
           s.shootCool = Math.max(0, s.shootCool - dt);
           if ((k.has(" ") || k.has("enter") || t.shoot) && s.shootCool === 0) {
-            const tx = W - 6;
+            const attackRight = s.phase === "half1";
+            const tx = attackRight ? W - 6 : 6;
             const ty = H / 2 + (Math.random() - 0.5) * 28;
             const dxs = tx - s.ball.x;
             const dys = ty - s.ball.y;
