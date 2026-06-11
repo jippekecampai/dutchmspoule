@@ -15,6 +15,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [user, setUser] = useState<null | { id: string }>(null);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
