@@ -86,7 +86,15 @@ function clamp(v: number, a: number, b: number) {
   return Math.min(b, Math.max(a, v));
 }
 
-export function PlayableGame({ onExit }: { onExit: () => void }) {
+export function PlayableGame({
+  onExit,
+  opponentName = "Tegenstander",
+  opponentCode = "CPU",
+}: {
+  onExit: () => void;
+  opponentName?: string;
+  opponentCode?: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [score, setScore] = useState<[number, number]>([0, 0]);
@@ -218,10 +226,11 @@ export function PlayableGame({ onExit }: { onExit: () => void }) {
           s.ballV.x = 0;
           s.ballV.y = 0;
 
-          // Schieten
+          // Schieten — richt op het doel waar NED naar toe speelt
           s.shootCool = Math.max(0, s.shootCool - dt);
           if ((k.has(" ") || k.has("enter") || t.shoot) && s.shootCool === 0) {
-            const tx = W - 6;
+            const attackRight = s.phase === "half1";
+            const tx = attackRight ? W - 6 : 6;
             const ty = H / 2 + (Math.random() - 0.5) * 28;
             const dxs = tx - s.ball.x;
             const dys = ty - s.ball.y;
@@ -240,9 +249,10 @@ export function PlayableGame({ onExit }: { onExit: () => void }) {
         const ospeed = 48;
         s.opponent.x = clamp(s.opponent.x + (odx / od) * ospeed * dt, 8, W - 8);
         s.opponent.y = clamp(s.opponent.y + (ody / od) * ospeed * dt, 28, H - 14);
+        const attackRight = s.phase === "half1";
         if (od < 8 && hasBall) {
-          // Tackle: bal wegschieten naar links
-          s.ballV.x = -140;
+          // Tackle: bal wegschieten richting de helft van NED
+          s.ballV.x = attackRight ? -140 : 140;
           s.ballV.y = (Math.random() - 0.5) * 80;
         }
 
@@ -261,18 +271,18 @@ export function PlayableGame({ onExit }: { onExit: () => void }) {
           s.ballV.y *= -0.6;
         }
 
-        // Doelpunten
+        // Doelpunten — NED valt aan naar rechts in helft 1, naar links in helft 2
         const inGoalY = s.ball.y > H / 2 - 14 && s.ball.y < H / 2 + 22;
-        if (s.ball.x > W - 6 && inGoalY) {
-          s.home += 1;
+        const rightGoal = s.ball.x > W - 6 && inGoalY;
+        const leftGoal = s.ball.x < 6 && inGoalY;
+        if (rightGoal || leftGoal) {
+          const nedScored = attackRight ? rightGoal : leftGoal;
+          if (nedScored) s.home += 1;
+          else s.away += 1;
           setScore([s.home, s.away]);
           s.flashGoal = 1.0;
-          resetKickoff(false);
-        } else if (s.ball.x < 6 && inGoalY) {
-          s.away += 1;
-          setScore([s.home, s.away]);
-          s.flashGoal = 1.0;
-          resetKickoff(true);
+          // Aftrap: NED start altijd op eigen helft
+          resetKickoff(attackRight);
         } else if (s.ball.x < 4) {
           s.ball.x = 4;
           s.ballV.x *= -0.5;
@@ -291,19 +301,20 @@ export function PlayableGame({ onExit }: { onExit: () => void }) {
       // Scorebord
       px(ctx, W / 2 - 56, 2, 112, 18, "rgba(6,9,20,0.92)");
       px(ctx, W / 2 - 56, 2, 112, 2, ORANJE);
-      text(ctx, `NED ${s.home}-${s.away} CPU`, W / 2, 7, 7, "#ffffff");
+      text(ctx, `NED ${s.home}-${s.away} ${opponentCode.slice(0, 3).toUpperCase()}`, W / 2, 7, 7, "#ffffff");
       const mm = Math.max(0, s.phaseTimer);
       text(ctx, `${String(mm).padStart(2, "0")}s`, W / 2, 14, 5, "#9aa4c8");
 
       if (s.phase === "idle") {
         px(ctx, 0, 60, W, 60, "rgba(6,9,20,0.85)");
-        text(ctx, "MINI MATCH", W / 2, 70, 10, ORANJE);
-        text(ctx, "2x 1 MIN  -  PAUZE 5S", W / 2, 90, 6, "#ffffff");
-        text(ctx, "PIJLTJES + SPATIE", W / 2, 104, 5, "#9aa4c8");
+        text(ctx, `NED vs ${opponentName.toUpperCase()}`, W / 2, 70, 8, ORANJE);
+        text(ctx, "2x 1 MIN  -  PAUZE 5S", W / 2, 88, 6, "#ffffff");
+        text(ctx, "PIJLTJES + SPATIE", W / 2, 102, 5, "#9aa4c8");
       } else if (s.phase === "break") {
-        px(ctx, 0, 70, W, 40, "rgba(6,9,20,0.85)");
-        text(ctx, "RUST", W / 2, 78, 12, ORANJE);
-        text(ctx, `2E HELFT IN ${s.phaseTimer}S`, W / 2, 96, 6, "#ffffff");
+        px(ctx, 0, 66, W, 48, "rgba(6,9,20,0.9)");
+        text(ctx, "RUST  -  WISSEL VAN HELFT", W / 2, 74, 6, ORANJE);
+        text(ctx, `2E HELFT IN ${s.phaseTimer}S`, W / 2, 92, 6, "#ffffff");
+        text(ctx, "NU AANVALLEN NAAR LINKS", W / 2, 104, 5, "#9aa4c8");
       } else if (s.phase === "done") {
         px(ctx, 0, 60, W, 60, "rgba(6,9,20,0.9)");
         text(ctx, "EINDE", W / 2, 68, 10, ORANJE);
