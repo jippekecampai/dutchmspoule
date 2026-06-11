@@ -102,7 +102,7 @@ function Index() {
         <div className="pattern-1988 absolute inset-x-0 top-0 h-3" />
         <div className="relative mx-auto max-w-5xl px-4 text-center">
           <div className="pixel-heading mb-6 inline-flex items-center gap-2 border-2 border-oranje bg-navy/80 px-4 py-2 text-[0.6rem] text-oranje-light">
-            <Gamepad2 className="h-4 w-4" />
+            <Trophy className="h-4 w-4" />
             WK 2026 — Groep F
           </div>
           <h1 className="pixel-heading mb-6 text-2xl leading-relaxed text-foreground sm:text-4xl">
@@ -113,42 +113,6 @@ function Index() {
           <p className="mx-auto mb-8 max-w-xl text-xl text-muted-foreground">
             Voorspel de standen van Oranje op het WK, sprokkel punten bij elke wedstrijd en strijd mee om de pot. Wie kent het Nederlands elftal het best?
           </p>
-
-          {/* Arcade-scherm: 8-bit demo of speelbaar mini-spelletje */}
-          {playing ? (
-            <PlayableGame
-              onExit={() => setPlaying(false)}
-              onMatchEnd={handleMatchEnd}
-              opponentName={nextOpponent.name}
-              opponentCode={nextOpponent.code}
-            />
-          ) : (
-            <>
-              <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
-                <RetroGameIntro className="block aspect-video w-full" predictions={predictedScores} />
-              </div>
-              <div className="mb-8 flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPlaying(true)}
-                  className="pixel-btn bg-oranje px-6 py-3 text-primary-foreground shadow-[4px_4px_0_0_rgb(0_0_0/0.6)] hover:bg-oranje-dark"
-                >
-                  ▶ SPEEL HET SPELLETJE
-                </button>
-                <p className="pixel-heading blink text-[0.55rem] text-oranje-light">
-                  {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
-                </p>
-                <p className="max-w-md text-xs text-muted-foreground">
-                  Speel een mini-wedstrijd van 2× 1 minuut. Op mobiel: joystick links, SHOOT rechts.
-                  Op desktop: pijltjes/WASD en spatie. Ingelogd? Dan telt je beste uitslag mee op de{" "}
-                  <Link to="/leaderboard" className="underline hover:text-foreground">
-                    highscore-lijst
-                  </Link>
-                  .
-                </p>
-              </div>
-            </>
-          )}
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link to="/poule">
@@ -247,8 +211,59 @@ function Index() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Bonus: 8-bit arcadespelletje */}
       <section className="mx-auto max-w-5xl px-4 py-16 text-center">
+        <div className="pixel-heading mb-4 inline-flex items-center gap-2 border-2 border-oranje/60 bg-navy/80 px-4 py-2 text-[0.55rem] text-oranje-light">
+          <Gamepad2 className="h-4 w-4" />
+          Extraatje — heeft niks met de poule te maken
+        </div>
+        <h2 className="pixel-heading mb-3 text-sm text-foreground sm:text-base">
+          Tussendoortje: het 8-bit spelletje
+        </h2>
+        <p className="mx-auto mb-8 max-w-xl text-lg text-muted-foreground">
+          Even wachten op de aftrap? Speel een potje retro-voetbal. Puur voor de lol — en voor de
+          eeuwige roem op de arcade-ranglijst.
+        </p>
+
+        {playing ? (
+          <PlayableGame
+            onExit={() => setPlaying(false)}
+            onMatchEnd={handleMatchEnd}
+            opponentName={nextOpponent.name}
+            opponentCode={nextOpponent.code}
+          />
+        ) : (
+          <>
+            <div className="mx-auto mb-4 max-w-2xl border-[6px] border-oranje bg-black p-1.5 shadow-[8px_8px_0_0_rgb(0_0_0/0.6)]">
+              <RetroGameIntro className="block aspect-video w-full" predictions={predictedScores} />
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setPlaying(true)}
+                className="pixel-btn bg-oranje px-6 py-3 text-primary-foreground shadow-[4px_4px_0_0_rgb(0_0_0/0.6)] hover:bg-oranje-dark"
+              >
+                ▶ SPEEL HET SPELLETJE
+              </button>
+              <p className="pixel-heading blink text-[0.55rem] text-oranje-light">
+                {predictedScores ? "Met jouw voorspellingen — PRESS START" : "PRESS START TO PLAY"}
+              </p>
+              <p className="max-w-md text-xs text-muted-foreground">
+                Een mini-wedstrijd van 2× 1 minuut. Op mobiel: joystick links, SHOOT rechts. Op
+                desktop: pijltjes/WASD en spatie. Ingelogd? Dan telt je beste uitslag mee op de{" "}
+                <Link to="/leaderboard" className="underline hover:text-foreground">
+                  highscore-lijst
+                </Link>
+                .
+              </p>
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* CTA */}
+      <section className="border-t-[3px] border-oranje/40 bg-navy py-16">
+        <div className="mx-auto max-w-5xl px-4 text-center">
         <h2 className="pixel-heading mb-5 text-sm text-foreground sm:text-base">
           Klaar om mee te doen?
         </h2>
@@ -260,6 +275,7 @@ function Index() {
             Start je voorspellingen
           </Button>
         </Link>
+        </div>
       </section>
     </div>
   );
