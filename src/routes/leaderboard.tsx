@@ -90,6 +90,42 @@ function LeaderboardPage() {
         </div>
       </div>
 
+      {/* Puntentelling-uitleg */}
+      <div className="pixel-card mb-8 overflow-hidden p-0">
+        <div className="pattern-1988 px-5 py-4">
+          <h2 className="pixel-heading flex items-center gap-2 text-xs text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.5)]">
+            <Target className="h-5 w-5" />
+            Hoe werken de punten?
+          </h2>
+        </div>
+        <div className="p-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex items-center gap-4 border-2 border-green-500/50 bg-green-500/10 p-4">
+              <div className="pixel-heading shrink-0 text-base text-green-400">+3</div>
+              <div>
+                <div className="pixel-heading text-[0.6rem] text-foreground">Exacte uitslag</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  Je voorspelde de exact goede stand, bijv. 2-1 voorspeld én 2-1 geëindigd.
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 border-2 border-oranje/50 bg-oranje/10 p-4">
+              <div className="pixel-heading shrink-0 text-base text-oranje">+1</div>
+              <div>
+                <div className="pixel-heading text-[0.6rem] text-foreground">Juiste uitslag</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  De winnaar (of gelijkspel) klopt, maar niet de exacte score. Bijv. 3-0 voorspeld, 2-1 geëindigd.
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Punten stapelen niet: een exacte uitslag levert 3 punten op (niet 3 + 1). Een misser
+            geeft 0 punten. Wie aan het eind de meeste punten heeft, wint de pot.
+          </p>
+        </div>
+      </div>
+
       {/* Leaderboard table */}
       {lbLoading ? (
         <div className="space-y-4">
